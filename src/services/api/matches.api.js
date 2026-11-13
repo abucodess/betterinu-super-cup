@@ -1,211 +1,198 @@
-import { supabase } from '@/services/supabase/client'
-
-const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                      import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-
-let mockMatches = [
-  {
-    id: 'm-1',
-    match_number: 1,
-    home_team_id: '22222222-2222-2222-2222-222222222221',
-    away_team_id: '22222222-2222-2222-2222-222222222222',
-    home_team: { name: 'Team Alpha', short_code: 'ALP' },
-    away_team: { name: 'Team Beta', short_code: 'BET' },
-    scheduled_at: new Date().toISOString(),
-    venue: 'Main Institute Ground',
-    status: 'live',
-    current_minute: 14,
-    home_score: 0,
-    away_score: 0,
-  },
-  {
-    id: 'm-2',
-    match_number: 2,
-    home_team_id: '22222222-2222-2222-2222-222222222222',
-    away_team_id: '22222222-2222-2222-2222-222222222223',
-    home_team: { name: 'Team Beta', short_code: 'BET' },
-    away_team: { name: 'Team Gamma', short_code: 'GAM' },
-    scheduled_at: new Date(Date.now() + 86400000).toISOString(),
-    venue: 'Main Institute Ground',
-    status: 'scheduled',
-    current_minute: 0,
-    home_score: 0,
-    away_score: 0,
-  },
-  {
-    id: 'm-3',
-    match_number: 3,
-    home_team_id: '22222222-2222-2222-2222-222222222223',
-    away_team_id: '22222222-2222-2222-2222-222222222221',
-    home_team: { name: 'Team Gamma', short_code: 'GAM' },
-    away_team: { name: 'Team Alpha', short_code: 'ALP' },
-    scheduled_at: new Date(Date.now() + 172800000).toISOString(),
-    venue: 'Main Institute Ground',
-    status: 'scheduled',
-    current_minute: 0,
-    home_score: 0,
-    away_score: 0,
-  },
-]
-
-let mockEvents = [
-  { id: 'ev-1', match_id: 'm-1', event_type: 'PERIOD_START', minute: 0, desc: 'Match Commenced' },
-]
+import { supabase } from '../supabase/client';
 
 export const matchesApi = {
   async getMatches() {
-    if (isPlaceholder) {
-      return { data: mockMatches, error: null }
-    }
+    const { data, error } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        home_team:teams!matches_home_team_id_fkey(id, name, short_code, logo_url, color_code),
+        away_team:teams!matches_away_team_id_fkey(id, name, short_code, logo_url, color_code),
+        referee:profiles!matches_referee_id_fkey(id, full_name, email)
+      `)
+      .order('match_number', { ascending: true });
 
-    try {
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          home_team:teams!matches_home_team_id_fkey(id, name, short_code, logo_url),
-          away_team:teams!matches_away_team_id_fkey(id, name, short_code, logo_url)
-        `)
-        .order('match_number', { ascending: true })
-
-      if (error) throw error
-      return { data: data || mockMatches, error: null }
-    } catch (err) {
-      return { data: mockMatches, error: null }
-    }
+    if (error) throw new Error(error.message);
+    return (data || []).map((m) => ({
+      ...m,
+      kickoff_time: m.kickoff_time || m.scheduled_at,
+    }));
   },
 
   async getMatchById(matchId) {
-    if (isPlaceholder) {
-      const match = mockMatches.find((m) => m.id === matchId) || mockMatches[0]
-      return { data: match, error: null }
-    }
+    const { data, error } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        home_team:teams!matches_home_team_id_fkey(id, name, short_code, logo_url, color_code),
+        away_team:teams!matches_away_team_id_fkey(id, name, short_code, logo_url, color_code),
+        referee:profiles!matches_referee_id_fkey(id, full_name, email),
+        events:match_events(*)
+      `)
+      .eq('id', matchId)
+      .single();
 
-    try {
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          home_team:teams!matches_home_team_id_fkey(id, name, short_code, logo_url),
-          away_team:teams!matches_away_team_id_fkey(id, name, short_code, logo_url),
-          events:match_events(*)
-        `)
-        .eq('id', matchId)
-        .single()
-
-      if (error) throw error
-      return { data, error: null }
-    } catch (err) {
-      return { data: mockMatches[0], error: null }
-    }
+    if (error) throw new Error(error.message);
+    return data;
   },
 
   async getMatchEvents(matchId) {
-    if (isPlaceholder) {
-      return { data: mockEvents.filter((e) => e.match_id === matchId), error: null }
-    }
-    try {
-      const { data, error } = await supabase
-        .from('match_events')
-        .select(`
-          *,
-          player:players(name, jersey_number),
-          team:teams(name, short_code)
-        `)
-        .eq('match_id', matchId)
-        .order('minute', { ascending: false })
-        .order('created_at', { ascending: false })
+    let query = supabase
+      .from('match_events')
+      .select(`
+        *,
+        player:players(id, name, jersey_number, position),
+        team:teams(id, name, short_code, color_code)
+      `)
+      .order('minute', { ascending: false })
+      .order('created_at', { ascending: false });
 
-      if (error) throw error
-      return { data: data || [], error: null }
-    } catch (err) {
-      return { data: [], error: err.message }
+    if (matchId) {
+      query = query.eq('match_id', matchId);
     }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return data || [];
   },
 
-  async recordMatchEvent({ matchId, teamId, playerId, eventType, minute, recordedBy }) {
-    if (isPlaceholder) {
-      const match = mockMatches.find((m) => m.id === matchId) || mockMatches[0]
-      if (eventType === 'GOAL') {
-        if (teamId === match.home_team_id) match.home_score += 1
-        else match.away_score += 1
-      }
-      const newEvent = {
-        id: `ev-${Date.now()}`,
-        match_id: matchId,
-        team_id: teamId,
-        player_id: playerId,
-        event_type: eventType,
-        minute,
-        recorded_by: recordedBy,
-        created_at: new Date().toISOString(),
-      }
-      mockEvents.unshift(newEvent)
-      return { success: true, home_score: match.home_score, away_score: match.away_score }
+  async getAllMatchEvents() {
+    return this.getMatchEvents(null);
+  },
+
+  async createMatch(matchData) {
+    if (matchData.home_team_id === matchData.away_team_id) {
+      throw new Error('Home team and Away team must be different.');
     }
 
-    try {
-      const { data, error } = await supabase.rpc('record_match_event', {
-        p_match_id: matchId,
-        p_team_id: teamId,
-        p_player_id: playerId,
-        p_event_type: eventType,
-        p_minute: minute,
-        p_recorded_by: recordedBy,
-      })
+    const payload = {
+      tournament_id: matchData.tournament_id || '11111111-1111-1111-1111-111111111111',
+      match_number: Number(matchData.match_number) || 1,
+      home_team_id: matchData.home_team_id,
+      away_team_id: matchData.away_team_id,
+      scheduled_at:
+        matchData.kickoff_time || matchData.scheduled_at || new Date().toISOString(),
+      venue: matchData.venue || 'Main Institute Ground',
+      status: matchData.status || 'scheduled',
+      referee_id: matchData.referee_id || 'a0000000-0000-0000-0000-000000000005',
+    };
 
-      if (error) throw error
-      return { success: true, ...data }
-    } catch (err) {
-      return { success: false, error: err.message }
+    const { data, error } = await supabase
+      .from('matches')
+      .insert([payload])
+      .select(`
+        *,
+        home_team:teams!matches_home_team_id_fkey(id, name, short_code, logo_url, color_code),
+        away_team:teams!matches_away_team_id_fkey(id, name, short_code, logo_url, color_code)
+      `)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  async updateMatch(matchId, updates) {
+    const cleanUpdates = { ...updates, updated_at: new Date().toISOString() };
+    delete cleanUpdates.home_team;
+    delete cleanUpdates.away_team;
+    delete cleanUpdates.referee;
+    delete cleanUpdates.events;
+    delete cleanUpdates.kickoff_time;
+
+    const { data, error } = await supabase
+      .from('matches')
+      .update(cleanUpdates)
+      .eq('id', matchId)
+      .select(`
+        *,
+        home_team:teams!matches_home_team_id_fkey(id, name, short_code, logo_url, color_code),
+        away_team:teams!matches_away_team_id_fkey(id, name, short_code, logo_url, color_code)
+      `)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  async deleteMatch(matchId) {
+    const { error } = await supabase.from('matches').delete().eq('id', matchId);
+    if (error) throw new Error(error.message);
+    return { success: true };
+  },
+
+  async recordMatchEvent({
+    matchId,
+    teamId,
+    playerId,
+    eventType,
+    minute,
+    recordedBy,
+    extraInfo = null,
+  }) {
+    let resolvedRefereeId = recordedBy;
+    if (!resolvedRefereeId) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      resolvedRefereeId =
+        sessionData?.session?.user?.id || 'a0000000-0000-0000-0000-000000000005';
     }
+
+    const { data, error } = await supabase.rpc('record_match_event', {
+      p_match_id: matchId,
+      p_team_id: teamId,
+      p_player_id: playerId,
+      p_event_type: eventType,
+      p_minute: Number(minute) || 1,
+      p_recorded_by: resolvedRefereeId,
+    });
+
+    if (error) throw new Error(error.message);
+
+    if (extraInfo && Object.keys(extraInfo).length > 0) {
+      const { data: latestEvents } = await supabase
+        .from('match_events')
+        .select('id')
+        .eq('match_id', matchId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (latestEvents && latestEvents[0]) {
+        await supabase
+          .from('match_events')
+          .update({ extra_info: extraInfo })
+          .eq('id', latestEvents[0].id);
+      }
+    }
+
+    return data;
   },
 
   async undoLastEvent(matchId, recordedBy) {
-    if (isPlaceholder) {
-      const match = mockMatches.find((m) => m.id === matchId) || mockMatches[0]
-      const last = mockEvents.shift()
-      if (last && last.event_type === 'GOAL') {
-        if (last.team_id === match.home_team_id && match.home_score > 0) match.home_score -= 1
-        else if (match.away_score > 0) match.away_score -= 1
-      }
-      return { success: true, undone: last?.event_type }
+    let resolvedRefereeId = recordedBy;
+    if (!resolvedRefereeId) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      resolvedRefereeId =
+        sessionData?.session?.user?.id || 'a0000000-0000-0000-0000-000000000005';
     }
 
-    try {
-      const { data, error } = await supabase.rpc('undo_last_match_event', {
-        p_match_id: matchId,
-        p_recorded_by: recordedBy,
-      })
+    const { data, error } = await supabase.rpc('undo_last_match_event', {
+      p_match_id: matchId,
+      p_recorded_by: resolvedRefereeId,
+    });
 
-      if (error) throw error
-      return { success: true, ...data }
-    } catch (err) {
-      return { success: false, error: err.message }
-    }
+    if (error) throw new Error(error.message);
+    return data;
   },
 
-  async updateMatchStatus(matchId, status, currentMinute) {
-    if (isPlaceholder) {
-      const match = mockMatches.find((m) => m.id === matchId)
-      if (match) {
-        match.status = status
-        if (currentMinute !== undefined) match.current_minute = currentMinute
-      }
-      return { success: true }
+  async updateMatchStatus(matchId, status, period, timerSeconds) {
+    const updates = { status, updated_at: new Date().toISOString() };
+    if (timerSeconds !== undefined) {
+      updates.current_minute = Math.max(0, Math.floor(Number(timerSeconds) / 60));
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('matches')
-        .update({ status, current_minute: currentMinute, updated_at: new Date().toISOString() })
-        .eq('id', matchId)
-
-      if (error) throw error
-      return { success: true }
-    } catch (err) {
-      return { success: false, error: err.message }
-    }
+    const { error } = await supabase.from('matches').update(updates).eq('id', matchId);
+    if (error) throw new Error(error.message);
+    return { success: true };
   },
-}
+};
 
+export default matchesApi;

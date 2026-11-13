@@ -16,7 +16,7 @@ export function Button({
   ...props
 }) {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8F34A] disabled:pointer-events-none disabled:opacity-50 select-none'
+    'inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8F34A] disabled:pointer-events-none disabled:opacity-50 select-none'
 
   const variants = {
     primary:
@@ -24,6 +24,8 @@ export function Button({
     secondary:
       'bg-[#202020] text-[#F4F7F2] border border-[#303030] hover:bg-[#2A2A2A] hover:border-[#404040]',
     destructive:
+      'bg-transparent border border-[#FF414D] text-[#FF414D] hover:bg-[#FF414D]/10',
+    danger:
       'bg-transparent border border-[#FF414D] text-[#FF414D] hover:bg-[#FF414D]/10',
     ghost:
       'bg-transparent text-[#9AA69B] hover:text-[#F4F7F2] hover:bg-[#202020]',

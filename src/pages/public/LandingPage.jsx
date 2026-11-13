@@ -1,103 +1,108 @@
-import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Trophy, ArrowRight, Settings, ShieldCheck, Activity, Users } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Trophy, ArrowUpRight } from 'lucide-react';
+
+/**
+ * Hero carousel slides.
+ * Currently displays Lionel Messi; additional slides (e.g. Neymar, Cristiano)
+ * can be added to this array later.
+ */
+const HERO_SLIDES = [
+  {
+    id: 'messi',
+    name: 'Lionel Messi',
+    image: '/assets/aistudio/pngwing.com_3118625d.png',
+  },
+];
 
 export function LandingPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  const currentHero = HERO_SLIDES[activeSlide] || HERO_SLIDES[0];
 
   return (
-    <div className="min-h-screen bg-[#090909] text-[#F4F7F2] flex flex-col justify-between p-6 sm:p-10 relative overflow-hidden">
-      {/* Background Subtle Gradient Accents */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#B8F34A]/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#B8F34A]/5 blur-[120px] pointer-events-none" />
+    <div className="h-dvh min-h-screen w-full bg-[#090909] text-[#F4F7F2] flex items-center justify-center overflow-hidden select-none">
+      {/* Mobile-First Fullscreen Container */}
+      <div className="relative w-full max-w-[440px] h-full flex flex-col justify-between overflow-hidden">
+        {/* Radial Olive-Lime Stadium Spotlight Backlight */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(circle at 50% 34%, rgba(132, 190, 38, 0.38) 0%, rgba(62, 92, 16, 0.22) 44%, rgba(9, 9, 9, 0.98) 76%)',
+          }}
+        />
 
-      {/* Top Bar with Options/Settings for Management Access */}
-      <header className="relative z-10 flex items-center justify-between max-w-6xl mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-[#141414] border border-[#303030] flex items-center justify-center text-[#B8F34A]">
-            <Trophy className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="font-bold tracking-tight text-base sm:text-lg block leading-tight">
-              IFL PLATFORM
-            </span>
-            <span className="text-[11px] text-[#9AA69B] uppercase tracking-wider block leading-tight">
-              Institute Football League
-            </span>
-          </div>
-        </div>
-
-        {/* Discreet Management Entry Point */}
-        <Link
-          to="/login"
-          title="Management Login"
-          className="h-11 w-11 rounded-xl bg-[#141414] border border-[#303030] flex items-center justify-center text-[#9AA69B] hover:text-[#B8F34A] hover:border-[#B8F34A]/50 transition-colors"
-        >
-          <Settings className="h-5 w-5" />
-        </Link>
-      </header>
-
-      {/* Hero Content */}
-      <main className="relative z-10 max-w-3xl mx-auto my-auto text-center py-12 px-4">
-        <Badge variant="brand" className="mb-6 px-3.5 py-1 text-xs">
-          OFFICIAL TOURNAMENT PLATFORM
-        </Badge>
-
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-[#F4F7F2] leading-tight sm:leading-none mb-6">
-          The Premier Institute <br />
-          <span className="text-[#B8F34A]">Football Experience</span>
-        </h1>
-
-        <p className="text-base sm:text-lg text-[#9AA69B] max-w-xl mx-auto mb-10 leading-relaxed">
-          Follow live matches with real-time scoreboards, official fixture schedules, dual spin-wheel player drafting, and authoritative league standings.
-        </p>
-
-        {/* Primary Call to Action */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button
-            size="lg"
-            className="w-full sm:w-auto px-8 text-base font-bold shadow-lg shadow-[#B8F34A]/10"
-            onClick={() => navigate('/public')}
-          >
-            <span>Continue to Tournament</span>
-            <ArrowRight className="h-5 w-5 ml-2" />
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="lg"
-            className="w-full sm:w-auto"
-            onClick={() => navigate('/login')}
-          >
-            <ShieldCheck className="h-4 w-4 mr-2 text-[#9AA69B]" />
-            <span>Staff Login</span>
-          </Button>
-        </div>
-
-        {/* Tournament Highlights Badges */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-6 mt-16 max-w-lg mx-auto pt-8 border-t border-[#202020]">
-          <div className="text-center">
-            <span className="text-xl sm:text-2xl font-bold text-[#F4F7F2] tabular-nums block">3</span>
-            <span className="text-[11px] text-[#9AA69B] uppercase tracking-wider">Teams</span>
-          </div>
-          <div className="text-center">
-            <span className="text-xl sm:text-2xl font-bold text-[#F4F7F2] tabular-nums block">15</span>
-            <span className="text-[11px] text-[#9AA69B] uppercase tracking-wider">Players</span>
-          </div>
-          <div className="text-center">
-            <span className="text-xl sm:text-2xl font-bold text-[#B8F34A] tabular-nums block">Live</span>
-            <span className="text-[11px] text-[#9AA69B] uppercase tracking-wider">Realtime</span>
+        {/* Upper Hero Cutout Area (Carousel Image) */}
+        <div className="relative z-10 flex-1 flex items-end justify-center pt-6 px-4 min-h-0">
+          <div className="relative w-full h-full max-h-[58vh] flex items-end justify-center">
+            <img
+              key={currentHero.id}
+              src={currentHero.image}
+              alt={currentHero.name}
+              className="w-full h-full object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]"
+            />
+            {/* Smooth Bottom Vignette Fade into Headline */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#090909] via-[#090909]/85 to-transparent" />
           </div>
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 text-center text-xs text-[#9AA69B] max-w-6xl mx-auto w-full pt-6">
-        <p>© 2026 Institute Football League Platform. Built with React & Supabase.</p>
-      </footer>
+        {/* Bottom Headline, Subtitle, Carousel Dots & Get Started CTA */}
+        <div className="relative z-20 px-6 pb-8 pt-2 space-y-6 bg-[#090909]">
+          <div className="space-y-3">
+            <h1 className="text-[32px] sm:text-[36px] font-bold tracking-tight text-[#F4F7F2] leading-[1.15]">
+              <span className="block">Step into the game</span>
+              <span className="inline-flex items-center gap-3 flex-wrap mt-1">
+                <span>Own the win</span>
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#191B17] border border-white/10 shadow-inner translate-y-[1px]">
+                  <span className="text-sm leading-none" role="img" aria-label="Football">
+                    ⚽
+                  </span>
+                  <Trophy className="w-4 h-4 text-[#F59E0B] fill-[#F59E0B]/20" />
+                </span>
+              </span>
+            </h1>
+
+            <p className="text-sm text-[#9AA69B] leading-relaxed max-w-[260px]">
+              Join the action make your moves and claim your victory
+            </p>
+          </div>
+
+          {/* Bottom Action Row: 3 Carousel Indicator Dots + "Get started ↗" Pill Button */}
+          <div className="flex items-center justify-between gap-4 pt-1">
+            <div className="flex items-center gap-1.5" role="tablist" aria-label="Hero slides">
+              {[0, 1, 2].map((idx) => {
+                const isActive = idx === 2;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveSlide(0)}
+                    aria-label={`Slide ${idx + 1}`}
+                    className={`h-1.5 rounded-full transition-all ${
+                      isActive ? 'w-6 bg-[#B8F34A]' : 'w-1.5 bg-[#32362E]'
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate('/public')}
+              className="group inline-flex items-center justify-between gap-5 pl-7 pr-2 py-2 rounded-full bg-[#B8F34A] hover:bg-[#c7ff5e] text-[#090909] font-semibold text-sm shadow-[0_8px_28px_rgba(184,243,74,0.28)] transition-all active:scale-[0.98]"
+            >
+              <span>Get started</span>
+              <span className="w-9 h-9 rounded-full bg-[#9ED932] group-hover:bg-[#8ec726] flex items-center justify-center text-[#090909] transition-transform group-hover:translate-x-0.5">
+                <ArrowUpRight className="w-4 h-4 stroke-[2.2]" />
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
 
+export default LandingPage;

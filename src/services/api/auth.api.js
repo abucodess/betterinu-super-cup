@@ -1,117 +1,93 @@
-import { supabase } from '@/services/supabase/client'
+import { supabase } from '../supabase/client';
 
 /**
- * Authentication API Service adhering to ARCHITECTURE.md §7 & §10.2
+ * Production Authentication & Management Profile Service
+ * Enforces strict Supabase Auth and database-backed role verification.
  */
-
 export const authApi = {
-  /**
-   * Signs in user with email and password via Supabase Auth
-   */
   async signIn(email, password) {
-    const cleanEmail = email.trim().toLowerCase()
-    
-    // Check if using placeholder credentials in development
-    const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                          import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
+    const cleanEmail = email.trim().toLowerCase();
 
-    if (isPlaceholder) {
-      // Development mock fallback when live Supabase is not yet connected
-      let mockRole = 'super_admin'
-      if (cleanEmail.includes('manager')) mockRole = 'manager'
-      if (cleanEmail.includes('referee')) mockRole = 'referee'
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password,
+    });
 
-      return {
-        user: {
-          id: `dev-${mockRole}-id`,
-          email: cleanEmail,
-          user_metadata: { full_name: cleanEmail.split('@')[0], role: mockRole },
-        },
-        session: { access_token: 'dev-token', expires_at: Date.now() + 3600000 },
-        role: mockRole,
-        error: null,
-      }
+    if (error) {
+      throw new Error(error.message);
     }
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      })
+    const profile = await this.getUserProfile(data.user.id);
+    const verifiedRole = profile?.role || data.user.user_metadata?.role || null;
 
-      if (error) {
-        return { user: null, session: null, role: null, error: error.message }
-      }
-
-      // Fetch user role from profiles table
-      const profile = await this.getUserProfile(data.user.id)
-
-      return {
-        user: data.user,
-        session: data.session,
-        role: profile?.role || data.user.user_metadata?.role || 'manager',
-        error: null,
-      }
-    } catch (err) {
-      return { user: null, session: null, role: null, error: err.message || 'Authentication failed' }
+    if (!verifiedRole) {
+      await supabase.auth.signOut();
+      throw new Error('Unauthorized account: No management role assigned in database.');
     }
+
+    return {
+      user: data.user,
+      profile,
+      session: data.session,
+      role: verifiedRole,
+    };
   },
 
-  /**
-   * Signs out current user
-   */
   async signOut() {
-    const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                          import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-    if (!isPlaceholder) {
-      try {
-        await supabase.auth.signOut()
-      } catch (err) {
-        console.warn('[Auth] Signout warning:', err.message)
-      }
-    }
-    return { success: true }
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error(error.message);
+    return { success: true };
   },
 
-  /**
-   * Retrieves active session
-   */
+  async resetPassword(email) {
+    const cleanEmail = email.trim().toLowerCase();
+    const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    if (error) throw new Error(error.message);
+    return { success: true };
+  },
+
   async getSession() {
-    const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                          import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-    if (isPlaceholder) return null
-
-    try {
-      const { data } = await supabase.auth.getSession()
-      return data?.session || null
-    } catch (err) {
-      return null
-    }
+    const { data, error } = await supabase.auth.getSession();
+    if (error) return null;
+    return data?.session || null;
   },
 
-  /**
-   * Retrieves user profile and role from PostgreSQL public.profiles
-   */
   async getUserProfile(userId) {
-    const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                          import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-    if (isPlaceholder) return null
+    if (!userId) return null;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.warn('[Auth] Could not fetch profile:', error.message)
-        return null
-      }
-      return data
-    } catch (err) {
-      return null
-    }
+    if (error) return null;
+    return data;
   },
-}
 
+  async getAllProfiles() {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('role', { ascending: true })
+      .order('full_name', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  },
+
+  async updateProfile(profileId, updates) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', profileId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+};
+
+export default authApi;

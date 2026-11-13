@@ -85,6 +85,13 @@ async function runVerification() {
   assert(gkList.length === 3, `Goalkeeper draft wheel has exactly 3 candidates`)
   assert(outfieldList.length === 12, `Outfield draft wheel has exactly 12 candidates`)
 
+  // Snapshot existing allocations so verification test is non-destructive
+  const initialAllocations = pubPlayers.filter(p => p.team_id).map(p => ({
+    id: p.id,
+    team_id: p.team_id,
+    is_goalkeeper: p.is_goalkeeper
+  }))
+
   // Ensure clean allocation slate before testing
   await client.from('players').update({ team_id: null }).neq('id', '00000000-0000-0000-0000-000000000000')
   await client.from('allocation_history').delete().neq('id', '00000000-0000-0000-0000-000000000000')
@@ -105,10 +112,17 @@ async function runVerification() {
   })
   assert(errGk2 !== null, `Strict rule enforced: Team Alpha cannot receive a second GK`)
 
-  // Reset Team Alpha allocation test
-  await client.from('players').update({ team_id: null }).eq('id', gkList[0].id)
+  // Restore initial allocations snapshot
+  await client.from('players').update({ team_id: null }).neq('id', '00000000-0000-0000-0000-000000000000')
   await client.from('allocation_history').delete().neq('id', '00000000-0000-0000-0000-000000000000')
-  console.log('  [CLEANUP] Reset test player assignment back to unallocated.')
+  for (const item of initialAllocations) {
+    await client.rpc('allocate_player_transaction', {
+      p_player_id: item.id,
+      p_team_id: item.team_id,
+      p_admin_id: adminAuth.user.id
+    })
+  }
+  console.log(`  [CLEANUP] Restored ${initialAllocations.length} player allocations.`)
 
   // TEST 5: Live Match Operations & Atomic Undo
   console.log('\n--- 5. Live Match Event Recording & Atomic Undo ---')

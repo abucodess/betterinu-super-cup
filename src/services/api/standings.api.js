@@ -1,48 +1,49 @@
-import { supabase } from '@/services/supabase/client'
-
-const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                      import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-
-const mockStandings = [
-  { team_id: 't-1', team_name: 'Team Alpha', short_code: 'ALP', matches_played: 0, won: 0, drawn: 0, lost: 0, goals_for: 0, goals_against: 0, goal_difference: 0, points: 0 },
-  { team_id: 't-2', team_name: 'Team Beta', short_code: 'BET', matches_played: 0, won: 0, drawn: 0, lost: 0, goals_for: 0, goals_against: 0, goal_difference: 0, points: 0 },
-  { team_id: 't-3', team_name: 'Team Gamma', short_code: 'GAM', matches_played: 0, won: 0, drawn: 0, lost: 0, goals_for: 0, goals_against: 0, goal_difference: 0, points: 0 },
-]
+import { supabase } from '../supabase/client';
 
 export const standingsApi = {
   async getStandings() {
-    if (isPlaceholder) {
-      return { data: mockStandings, error: null }
-    }
+    const [{ data: standingsData, error: stErr }, { data: teamsData }] = await Promise.all([
+      supabase.from('standings_view').select('*'),
+      supabase.from('teams').select('id, color_code'),
+    ]);
 
-    try {
-      const { data, error } = await supabase
-        .from('standings_view')
-        .select('*')
+    if (stErr) throw new Error(stErr.message);
 
-      if (error) throw error
-      return { data: data || mockStandings, error: null }
-    } catch (err) {
-      return { data: mockStandings, error: null }
-    }
+    const colorMap = {};
+    (teamsData || []).forEach((t) => {
+      colorMap[t.id] = t.color_code;
+    });
+
+    return (standingsData || []).map((row) => ({
+      ...row,
+      played: row.matches_played ?? row.played ?? 0,
+      color_code: row.color_code || colorMap[row.team_id] || '#B8F34A',
+    }));
   },
 
   async getPlayerStats() {
-    if (isPlaceholder) {
-      return { data: [], error: null }
-    }
-
-    try {
-      const { data, error } = await supabase
+    const [{ data: statsData, error: stErr }, { data: playersData }] = await Promise.all([
+      supabase
         .from('player_stats_view')
         .select('*')
         .order('goals', { ascending: false })
+        .order('player_name', { ascending: true }),
+      supabase.from('players').select('id, jersey_number'),
+    ]);
 
-      if (error) throw error
-      return { data: data || [], error: null }
-    } catch (err) {
-      return { data: [], error: null }
-    }
+    if (stErr) throw new Error(stErr.message);
+
+    const jerseyMap = {};
+    (playersData || []).forEach((p) => {
+      jerseyMap[p.id] = p.jersey_number;
+    });
+
+    return (statsData || []).map((row) => ({
+      ...row,
+      name: row.player_name || row.name,
+      jersey_number: row.jersey_number ?? jerseyMap[row.player_id] ?? 10,
+    }));
   },
-}
+};
 
+export default standingsApi;

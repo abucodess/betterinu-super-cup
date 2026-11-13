@@ -1,94 +1,75 @@
-import { supabase } from '@/services/supabase/client'
-
-const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                      import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-
-const mockTeams = [
-  {
-    id: '22222222-2222-2222-2222-222222222221',
-    name: 'Team Alpha',
-    short_code: 'ALP',
-    color_code: '#B8F34A',
-    manager: { full_name: 'Manager One', email: 'manager1@supercup.com' },
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222222',
-    name: 'Team Beta',
-    short_code: 'BET',
-    color_code: '#3B82F6',
-    manager: { full_name: 'Manager Two', email: 'manager2@supercup.com' },
-  },
-  {
-    id: '22222222-2222-2222-2222-222222222223',
-    name: 'Team Gamma',
-    short_code: 'GAM',
-    color_code: '#F59E0B',
-    manager: { full_name: 'Manager Three', email: 'manager3@supercup.com' },
-  },
-]
+import { supabase } from '../supabase/client';
 
 export const teamsApi = {
   async getTeams() {
-    if (isPlaceholder) {
-      return { data: mockTeams, error: null }
-    }
-    try {
-      const { data, error } = await supabase
-        .from('teams')
-        .select(`
-          *,
-          manager:profiles!teams_manager_id_fkey(id, email, full_name)
-        `)
-        .order('name', { ascending: true })
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        manager:profiles!teams_manager_id_fkey(id, email, full_name, role, avatar_url)
+      `)
+      .order('name', { ascending: true });
 
-      if (error) throw error
-      return { data: data || mockTeams, error: null }
-    } catch (err) {
-      return { data: mockTeams, error: null }
-    }
+    if (error) throw new Error(error.message);
+    return data || [];
   },
 
   async getTeamById(teamId) {
-    if (isPlaceholder) {
-      const team = mockTeams.find((t) => t.id === teamId) || mockTeams[0]
-      return { data: team, error: null }
-    }
-    try {
-      const { data, error } = await supabase
-        .from('teams')
-        .select(`
-          *,
-          manager:profiles!teams_manager_id_fkey(id, email, full_name),
-          players(*)
-        `)
-        .eq('id', teamId)
-        .single()
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        manager:profiles!teams_manager_id_fkey(id, email, full_name, role, avatar_url),
+        players(*)
+      `)
+      .eq('id', teamId)
+      .single();
 
-      if (error) throw error
-      return { data, error: null }
-    } catch (err) {
-      return { data: mockTeams[0], error: null }
-    }
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  async createTeam(teamData) {
+    const payload = {
+      name: teamData.name.trim(),
+      short_code: teamData.short_code.trim().toUpperCase().slice(0, 4),
+      color_code: teamData.color_code || '#B8F34A',
+      logo_url: teamData.logo_url || null,
+      manager_id: teamData.manager_id || null,
+      tournament_id: teamData.tournament_id || '11111111-1111-1111-1111-111111111111',
+    };
+
+    const { data, error } = await supabase
+      .from('teams')
+      .insert([payload])
+      .select(`
+        *,
+        manager:profiles!teams_manager_id_fkey(id, email, full_name, role, avatar_url)
+      `)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
   },
 
   async updateTeam(teamId, updates) {
-    if (isPlaceholder) {
-      const index = mockTeams.findIndex((t) => t.id === teamId)
-      if (index !== -1) Object.assign(mockTeams[index], updates)
-      return { data: mockTeams[index], error: null }
-    }
-    try {
-      const { data, error } = await supabase
-        .from('teams')
-        .update(updates)
-        .eq('id', teamId)
-        .select()
-        .single()
-      if (error) throw error
-      return { data, error: null }
-    } catch (err) {
-      return { data: null, error: err.message }
-    }
-  },
-}
+    const cleanUpdates = { ...updates, updated_at: new Date().toISOString() };
+    delete cleanUpdates.manager;
+    delete cleanUpdates.players;
 
+    const { data, error } = await supabase
+      .from('teams')
+      .update(cleanUpdates)
+      .eq('id', teamId)
+      .select(`
+        *,
+        manager:profiles!teams_manager_id_fkey(id, email, full_name, role, avatar_url)
+      `)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+};
+
+export default teamsApi;

@@ -40,3 +40,61 @@
   font-variant-numeric: tabular-nums;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes cardPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.84) translateY(14px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.03) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes spotlightEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateY(24px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fadeInFast {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-card-pop {
+  animation: cardPopIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-spotlight-enter {
+  animation: spotlightEnter 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeInFast 0.2s ease-out forwards;
+}

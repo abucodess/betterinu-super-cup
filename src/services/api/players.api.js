@@ -1,119 +1,150 @@
-import { supabase } from '@/services/supabase/client'
-
-const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                      import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-
-let mockPlayers = [
-  // 3 Goalkeepers
-  { id: 'p-1', name: 'David De Gea', jersey_number: 1, position: 'GK', is_goalkeeper: true, team_id: null },
-  { id: 'p-2', name: 'Manuel Neuer', jersey_number: 12, position: 'GK', is_goalkeeper: true, team_id: null },
-  { id: 'p-3', name: 'Thibaut Courtois', jersey_number: 13, position: 'GK', is_goalkeeper: true, team_id: null },
-  // 12 Outfield Players
-  { id: 'p-4', name: 'Virgil van Dijk', jersey_number: 4, position: 'CB', is_goalkeeper: false, team_id: null },
-  { id: 'p-5', name: 'Sergio Ramos', jersey_number: 5, position: 'CB', is_goalkeeper: false, team_id: null },
-  { id: 'p-6', name: 'Ruben Dias', jersey_number: 3, position: 'CB', is_goalkeeper: false, team_id: null },
-  { id: 'p-7', name: 'Kevin De Bruyne', jersey_number: 7, position: 'MF', is_goalkeeper: false, team_id: null },
-  { id: 'p-8', name: 'Luka Modric', jersey_number: 10, position: 'MF', is_goalkeeper: false, team_id: null },
-  { id: 'p-9', name: 'Rodri Hernandez', jersey_number: 16, position: 'MF', is_goalkeeper: false, team_id: null },
-  { id: 'p-10', name: 'Jude Bellingham', jersey_number: 8, position: 'MF', is_goalkeeper: false, team_id: null },
-  { id: 'p-11', name: 'Erling Haaland', jersey_number: 9, position: 'FW', is_goalkeeper: false, team_id: null },
-  { id: 'p-12', name: 'Kylian Mbappe', jersey_number: 11, position: 'FW', is_goalkeeper: false, team_id: null },
-  { id: 'p-13', name: 'Vinicius Junior', jersey_number: 77, position: 'FW', is_goalkeeper: false, team_id: null },
-  { id: 'p-14', name: 'Bukayo Saka', jersey_number: 20, position: 'FW', is_goalkeeper: false, team_id: null },
-  { id: 'p-15', name: 'Phil Foden', jersey_number: 47, position: 'FW', is_goalkeeper: false, team_id: null },
-]
+import { supabase } from '../supabase/client';
 
 export const playersApi = {
   async getPlayers(filter = {}) {
-    if (isPlaceholder) {
-      let filtered = [...mockPlayers]
-      if (filter.unallocated) {
-        filtered = filtered.filter((p) => p.team_id === null)
-      }
-      if (filter.is_goalkeeper !== undefined) {
-        filtered = filtered.filter((p) => p.is_goalkeeper === filter.is_goalkeeper)
-      }
-      if (filter.team_id) {
-        filtered = filtered.filter((p) => p.team_id === filter.team_id)
-      }
-      return { data: filtered, error: null }
+    let query = supabase
+      .from('players')
+      .select('*, team:teams(id, name, short_code, color_code, logo_url)')
+      .order('position', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (filter.unallocated) {
+      query = query.is('team_id', null);
+    }
+    if (filter.is_goalkeeper !== undefined) {
+      query = query.eq('is_goalkeeper', filter.is_goalkeeper);
+    }
+    if (filter.team_id) {
+      query = query.eq('team_id', filter.team_id);
+    }
+    if (filter.position && filter.position !== 'ALL') {
+      query = query.eq('position', filter.position);
     }
 
-    try {
-      let query = supabase
-        .from('players')
-        .select('*, team:teams(id, name, short_code)')
-        .order('name', { ascending: true })
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return data || [];
+  },
 
-      if (filter.unallocated) {
-        query = query.is('team_id', null)
-      }
-      if (filter.is_goalkeeper !== undefined) {
-        query = query.eq('is_goalkeeper', filter.is_goalkeeper)
-      }
-      if (filter.team_id) {
-        query = query.eq('team_id', filter.team_id)
-      }
+  async getPlayerById(playerId) {
+    const { data, error } = await supabase
+      .from('players')
+      .select('*, team:teams(id, name, short_code, color_code, logo_url)')
+      .eq('id', playerId)
+      .single();
 
-      const { data, error } = await query
-      if (error) throw error
-      return { data: data || mockPlayers, error: null }
-    } catch (err) {
-      return { data: mockPlayers, error: null }
-    }
+    if (error) throw new Error(error.message);
+    return data;
   },
 
   async addPlayer(playerData) {
-    if (isPlaceholder) {
-      const newPlayer = {
-        id: `p-${Date.now()}`,
-        ...playerData,
-        is_goalkeeper: playerData.position === 'GK',
-        team_id: null,
-      }
-      mockPlayers.push(newPlayer)
-      return { data: newPlayer, error: null }
+    const cleanName = (playerData.name || '').trim();
+    if (!cleanName) {
+      throw new Error('Player name is required.');
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('players')
-        .insert([playerData])
-        .select()
-        .single()
+    const { data: existing } = await supabase
+      .from('players')
+      .select('id, name')
+      .ilike('name', cleanName);
 
-      if (error) throw error
-      return { data, error: null }
-    } catch (err) {
-      return { data: null, error: err.message }
+    if (existing && existing.length > 0) {
+      throw new Error(`Player "${cleanName}" is already registered.`);
     }
+
+    const payload = {
+      name: cleanName,
+      jersey_number: Number(playerData.jersey_number) || 1,
+      position: playerData.position || 'MF',
+      photo_url: playerData.photo_url || null,
+      team_id: playerData.team_id || null,
+      tournament_id: playerData.tournament_id || '11111111-1111-1111-1111-111111111111',
+    };
+
+    const { data, error } = await supabase
+      .from('players')
+      .insert([payload])
+      .select('*, team:teams(id, name, short_code, color_code, logo_url)')
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  async bulkAddPlayers(playersArray = [], tournamentId = '11111111-1111-1111-1111-111111111111') {
+    if (!Array.isArray(playersArray) || playersArray.length === 0) {
+      throw new Error('No valid player entries provided.');
+    }
+
+    const rows = playersArray.map((p) => ({
+      name: String(p.name || '').trim(),
+      jersey_number: Number(p.jersey_number) || 1,
+      position: ['GK', 'CB', 'MF', 'FW'].includes(p.position) ? p.position : 'MF',
+      photo_url: p.photo_url || null,
+      tournament_id: p.tournament_id || tournamentId,
+    }));
+
+    const { data, error } = await supabase
+      .from('players')
+      .insert(rows)
+      .select('*, team:teams(id, name, short_code, color_code, logo_url)');
+
+    if (error) throw new Error(error.message);
+    return data || [];
   },
 
   async updatePlayer(id, updates) {
-    if (isPlaceholder) {
-      const index = mockPlayers.findIndex((p) => p.id === id)
-      if (index !== -1) {
-        Object.assign(mockPlayers[index], updates)
-        if (updates.position) {
-          mockPlayers[index].is_goalkeeper = updates.position === 'GK'
-        }
+    if (!id) throw new Error('Player ID is required.');
+
+    const cleanUpdates = { ...updates, updated_at: new Date().toISOString() };
+    delete cleanUpdates.is_goalkeeper;
+    delete cleanUpdates.team;
+
+    if (cleanUpdates.name !== undefined) {
+      const cleanName = String(cleanUpdates.name).trim();
+      if (!cleanName) {
+        throw new Error('Player name cannot be empty.');
       }
-      return { data: mockPlayers[index], error: null }
-    }
+      cleanUpdates.name = cleanName;
 
-    try {
-      const { data, error } = await supabase
+      const { data: existing } = await supabase
         .from('players')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single()
+        .select('id, name')
+        .ilike('name', cleanName)
+        .neq('id', id);
 
-      if (error) throw error
-      return { data, error: null }
-    } catch (err) {
-      return { data: null, error: err.message }
+      if (existing && existing.length > 0) {
+        throw new Error(`Another player named "${cleanName}" already exists.`);
+      }
     }
-  },
-}
 
+    const { data, error } = await supabase
+      .from('players')
+      .update(cleanUpdates)
+      .eq('id', id)
+      .select('*, team:teams(id, name, short_code, color_code, logo_url)')
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  async deletePlayer(id) {
+    if (!id) throw new Error('Player ID is required for deletion.');
+
+    const { error } = await supabase.from('players').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    return { success: true, deletedId: id };
+  },
+
+  async deleteAllPlayers() {
+    const { error } = await supabase
+      .from('players')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+    if (error) throw new Error(error.message);
+    return { success: true };
+  },
+};
+
+export default playersApi;

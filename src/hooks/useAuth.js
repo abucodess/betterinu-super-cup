@@ -1,40 +1,38 @@
 import { useEffect, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { useQueryClient } from '@tanstack/react-query'
 import { setCredentials, clearCredentials, setLoading } from '@/store/slices/auth.slice'
 import { authApi } from '@/services/api/auth.api'
 import { supabase } from '@/services/supabase/client'
 
 export function useAuth() {
   const dispatch = useDispatch()
-  const { user, role, session, isAuthenticated, isLoading } = useSelector(
+  const queryClient = useQueryClient()
+  const { user, profile, role, session, isAuthenticated, isLoading } = useSelector(
     (state) => state.auth
   )
 
-  // Session initial restore
   useEffect(() => {
     let isMounted = true
 
     async function initSession() {
-      const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                            import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-      
-      if (isPlaceholder) {
-        // If developer already logged in via Redux state, keep it; otherwise finish loading
-        if (isMounted) dispatch(setLoading(false))
-        return
-      }
-
       try {
         const currentSession = await authApi.getSession()
-        if (currentSession && isMounted) {
-          const profile = await authApi.getUserProfile(currentSession.user.id)
-          dispatch(
-            setCredentials({
-              user: currentSession.user,
-              session: currentSession,
-              role: profile?.role || currentSession.user.user_metadata?.role || 'manager',
-            })
-          )
+        if (currentSession?.user && isMounted) {
+          const userProfile = await authApi.getUserProfile(currentSession.user.id)
+          const verifiedRole = userProfile?.role || currentSession.user.user_metadata?.role || null
+          if (verifiedRole) {
+            dispatch(
+              setCredentials({
+                user: currentSession.user,
+                profile: userProfile,
+                session: currentSession,
+                role: verifiedRole,
+              })
+            )
+          } else {
+            dispatch(clearCredentials())
+          }
         } else if (isMounted) {
           dispatch(setLoading(false))
         }
@@ -45,32 +43,31 @@ export function useAuth() {
 
     initSession()
 
-    // Listen to Supabase Auth state changes
-    const isPlaceholder = !import.meta.env.VITE_SUPABASE_URL || 
-                          import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-    let authListener = null
-
-    if (!isPlaceholder) {
-      const { data } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-        if (newSession) {
-          const profile = await authApi.getUserProfile(newSession.user.id)
+    const { data } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (!isMounted) return
+      if (newSession?.user) {
+        const userProfile = await authApi.getUserProfile(newSession.user.id)
+        const verifiedRole = userProfile?.role || newSession.user.user_metadata?.role || null
+        if (verifiedRole) {
           dispatch(
             setCredentials({
               user: newSession.user,
+              profile: userProfile,
               session: newSession,
-              role: profile?.role || newSession.user.user_metadata?.role || 'manager',
+              role: verifiedRole,
             })
           )
         } else {
           dispatch(clearCredentials())
         }
-      })
-      authListener = data?.subscription
-    }
+      } else {
+        dispatch(clearCredentials())
+      }
+    })
 
     return () => {
       isMounted = false
-      if (authListener) authListener.unsubscribe()
+      data?.subscription?.unsubscribe()
     }
   }, [dispatch])
 
@@ -78,14 +75,18 @@ export function useAuth() {
     async (email, password) => {
       dispatch(setLoading(true))
       const result = await authApi.signIn(email, password)
-      if (result.error) {
+      if (result.error || !result.role) {
         dispatch(setLoading(false))
-        return { success: false, error: result.error }
+        return {
+          success: false,
+          error: result.error || 'Account does not have an authorized tournament management role.',
+        }
       }
 
       dispatch(
         setCredentials({
           user: result.user,
+          profile: result.profile,
           session: result.session,
           role: result.role,
         })
@@ -98,10 +99,12 @@ export function useAuth() {
   const logout = useCallback(async () => {
     await authApi.signOut()
     dispatch(clearCredentials())
-  }, [dispatch])
+    queryClient.clear()
+  }, [dispatch, queryClient])
 
   return {
     user,
+    profile,
     role,
     session,
     isAuthenticated,
@@ -110,4 +113,3 @@ export function useAuth() {
     logout,
   }
 }
-
