@@ -2,20 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Trophy,
-  Lock,
-  Mail,
   AlertCircle,
   ArrowLeft,
+  ArrowRight,
+  ChevronRight,
   Eye,
   EyeOff,
-  CheckCircle2,
-  ShieldCheck,
-  KeyRound,
 } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { Card } from '../../components/ui/Card';
+import { BrandLogo } from '../../components/shared/BrandLogo';
 import { authApi } from '../../services/api/auth.api';
 import { setCredentials } from '../../store/slices/auth.slice';
 
@@ -29,18 +23,6 @@ export function LoginPage() {
   });
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(() => {
-    try {
-      return Boolean(localStorage.getItem('supercup_remembered_email'));
-    } catch {
-      return false;
-    }
-  });
-
-  // Forgot Password Mode
-  const [isResetMode, setIsResetMode] = useState(false);
-  const [resetSuccessMessage, setResetSuccessMessage] = useState('');
-
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,7 +30,6 @@ export function LoginPage() {
   const dispatch = useDispatch();
   const { isAuthenticated, role } = useSelector((state) => state.auth);
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && role) {
       if (role === 'super_admin') navigate('/admin', { replace: true });
@@ -64,31 +45,29 @@ export function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setResetSuccessMessage('');
 
     const trimmedEmail = email.trim().toLowerCase();
     if (!validateEmail(trimmedEmail)) {
-      setError('Please enter a valid tournament staff email address.');
+      setError('Enter a valid email address.');
       return;
     }
     if (!password || password.length < 6) {
-      setError('Please enter your account password.');
+      setError('Enter your password.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const { user, session, role: userRole, profile } = await authApi.signIn(trimmedEmail, password);
+      const { user, session, role: userRole, profile } = await authApi.signIn(
+        trimmedEmail,
+        password
+      );
 
       try {
-        if (rememberMe) {
-          localStorage.setItem('supercup_remembered_email', trimmedEmail);
-        } else {
-          localStorage.removeItem('supercup_remembered_email');
-        }
+        localStorage.setItem('supercup_remembered_email', trimmedEmail);
       } catch {
-        // Ignore storage errors in restricted environments
+        // Ignore storage errors
       }
 
       dispatch(setCredentials({ user, session, role: userRole, profile }));
@@ -100,208 +79,113 @@ export function LoginPage() {
     } catch (err) {
       setError(
         err.message === 'Invalid login credentials'
-          ? 'Invalid email or password. Please verify your tournament credentials.'
-          : err.message || 'Authentication failed. Please try again.'
+          ? 'Invalid email or password.'
+          : err.message || 'Sign in failed.'
       );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    setError('');
-    setResetSuccessMessage('');
-
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!validateEmail(trimmedEmail)) {
-      setError('Please enter a valid registered email address to receive a recovery link.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await authApi.resetPassword(trimmedEmail);
-      setResetSuccessMessage(
-        'If an official tournament account exists for this email, a password recovery link has been dispatched.'
-      );
-    } catch (err) {
-      setError(err.message || 'Unable to process password reset request at this time.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#090909] text-[#F4F7F2] flex flex-col justify-center items-center p-4 relative overflow-hidden">
-      {/* Subtle Ambient Background Accent */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-[#B8F34A]/5 blur-3xl" />
-
-      <div className="w-full max-w-md space-y-6 relative z-10">
-        {/* Back Link */}
+    <div className="min-h-screen bg-[#090909] text-[#F4F7F2] flex flex-col justify-center items-center p-5 relative overflow-hidden">
+      {/* Top-Left Circular Back Button */}
+      <div className="fixed top-5 left-5 z-20">
         <Link
           to="/public"
-          className="inline-flex items-center gap-2 text-xs font-medium text-[#9AA69B] hover:text-[#F4F7F2] transition-colors"
+          aria-label="Back to tournament"
+          className="w-11 h-11 rounded-full bg-[#161616] border border-white/[0.08] flex items-center justify-center text-[#F4F7F2] hover:bg-[#B8F34A] hover:text-[#090909] transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
-          Return to Public Spectator Hub
         </Link>
+      </div>
 
-        {/* Tournament Identity Header */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-[#B8F34A] flex items-center justify-center text-[#090909] mx-auto shadow-lg">
-            <Trophy className="w-7 h-7" />
+      {/* Minimal Clean Sign-In Container */}
+      <div className="w-full max-w-[360px] space-y-7 animate-slide-up">
+        {/* Clean Brand Header */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <BrandLogo size="lg" />
           </div>
-          <div className="pt-1">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-[#B8F34A]">
-              BetterInU Super Cup
-            </span>
-            <h1 className="text-2xl font-bold tracking-tight text-[#F4F7F2] mt-0.5">
-              {isResetMode ? 'Account Recovery' : 'Official Staff Sign In'}
-            </h1>
-            <p className="text-xs text-[#9AA69B] mt-1">
-              {isResetMode
-                ? 'Enter your registered email address to request a password reset link.'
-                : 'Authorized access for Tournament Administrators, Team Managers, and Match Referees.'}
-            </p>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#F4F7F2]">
+            Staff Sign In
+          </h1>
         </div>
 
-        {/* Authentication Card */}
-        <Card className="p-6 space-y-5 border-[#303030] bg-[#141414]">
+        {/* Minimal Form */}
+        <form onSubmit={handleLogin} className="space-y-3.5" noValidate>
           {error && (
             <div
               role="alert"
-              className="p-3.5 rounded-lg bg-red-500/10 border border-red-500/30 flex items-start gap-2.5 text-red-400 text-xs"
+              className="px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-2.5 text-red-400 text-xs font-medium"
             >
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          {resetSuccessMessage && (
-            <div
-              role="status"
-              className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-2.5 text-emerald-400 text-xs"
+          <div>
+            <input
+              id="login-email-input"
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+              aria-label="Email address"
+              className="w-full bg-[#161616] border border-white/[0.08] rounded-2xl px-4 py-3.5 text-sm text-[#F4F7F2] placeholder-[#9AA69B]/55 focus:outline-none focus:border-[#B8F34A] transition-colors"
+            />
+          </div>
+
+          <div className="relative">
+            <input
+              id="login-password-input"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              aria-label="Password"
+              className="w-full bg-[#161616] border border-white/[0.08] rounded-2xl pl-4 pr-11 py-3.5 text-sm text-[#F4F7F2] placeholder-[#9AA69B]/55 focus:outline-none focus:border-[#B8F34A] transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#9AA69B] hover:text-[#F4F7F2] transition-colors"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{resetSuccessMessage}</span>
-            </div>
-          )}
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
 
-          {isResetMode ? (
-            <form onSubmit={handleForgotPassword} className="space-y-4" noValidate>
-              <Input
-                label="Registered Staff Email"
-                type="email"
-                placeholder="name@supercup.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
+          {/* Signature Track-Style Submit Button */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group w-full rounded-full bg-[#090909] border border-[#B8F34A] p-1.5 flex items-center justify-between transition-all hover:bg-[#141414] active:scale-[0.98] disabled:opacity-50"
+            >
+              <span className="w-11 h-11 rounded-full bg-[#B8F34A] text-[#090909] flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
+                <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+              </span>
 
-              <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-                <KeyRound className="w-4 h-4" />
-                Send Recovery Instructions
-              </Button>
+              <span className="text-sm font-extrabold text-[#F4F7F2] tracking-wide">
+                {isSubmitting ? 'Signing in...' : 'Sign In'}
+              </span>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsResetMode(false);
-                  setError('');
-                  setResetSuccessMessage('');
-                }}
-                className="w-full text-center text-xs font-semibold text-[#9AA69B] hover:text-[#F4F7F2] py-1.5 transition-colors"
-              >
-                ← Back to Sign In
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleLogin} className="space-y-4" noValidate>
-              <Input
-                label="Official Email Address"
-                type="email"
-                placeholder="official@supercup.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-              />
-
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-1.5">
-                  <label
-                    htmlFor="login-password-input"
-                    className="block text-xs font-medium text-[#9AA69B]"
-                  >
-                    Password
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsResetMode(true);
-                      setError('');
-                      setResetSuccessMessage('');
-                    }}
-                    className="text-xs font-medium text-[#B8F34A] hover:underline"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="relative">
-                  <input
-                    id="login-password-input"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    required
-                    className="w-full bg-[#202020] border border-[#303030] rounded-lg pl-3.5 pr-10 py-2.5 text-sm text-[#F4F7F2] placeholder-[#9AA69B]/50 focus:outline-none focus:border-[#B8F34A] focus:ring-1 focus:ring-[#B8F34A] transition-colors"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-[#9AA69B] hover:text-[#F4F7F2] transition-colors"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember Me Checkbox */}
-              <div className="flex items-center justify-between pt-0.5">
-                <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-[#303030] bg-[#202020] text-[#B8F34A] focus:ring-[#B8F34A]"
-                  />
-                  <span className="text-xs text-[#9AA69B]">Remember email on this device</span>
-                </label>
-              </div>
-
-              <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-                <Lock className="w-4 h-4" />
-                Sign In to Portal
-              </Button>
-            </form>
-          )}
-        </Card>
-
-        {/* Security Notice Footer */}
-        <div className="rounded-xl bg-[#141414]/80 border border-[#303030] p-3.5 flex items-center gap-3 text-xs text-[#9AA69B]">
-          <ShieldCheck className="w-5 h-5 text-[#B8F34A] shrink-0" />
-          <p className="leading-relaxed">
-            Management and officiating accounts are provisioned exclusively by the Tournament Super Admin. Public spectators do not require an account.
-          </p>
-        </div>
+              <span className="pr-4 flex items-center text-[#B8F34A]">
+                <ChevronRight className="w-4 h-4 -mr-2 animate-chevron-1" />
+                <ChevronRight className="w-4 h-4 -mr-2 animate-chevron-2" />
+                <ChevronRight className="w-4 h-4 animate-chevron-3" />
+              </span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
+
 export default LoginPage;

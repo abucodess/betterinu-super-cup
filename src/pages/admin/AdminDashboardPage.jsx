@@ -8,7 +8,6 @@ import {
   Trash2,
   CheckCircle2,
   AlertCircle,
-  Trophy,
   Settings,
   Megaphone,
   Upload,

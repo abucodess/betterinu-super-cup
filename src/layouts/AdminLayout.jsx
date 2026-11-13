@@ -1,7 +1,8 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Trophy, Users, Shield, Calendar, LogOut } from 'lucide-react';
+import { LayoutGrid, Users, Shield, Calendar, LogOut } from 'lucide-react';
+import { BrandLogo } from '../components/shared/BrandLogo';
 import { authApi } from '../services/api/auth.api';
 
 export function AdminLayout() {
@@ -9,7 +10,7 @@ export function AdminLayout() {
   const { user, profile } = useSelector((state) => state.auth);
 
   const navItems = [
-    { to: '/admin', label: 'Overview', icon: Trophy, end: true },
+    { to: '/admin', label: 'Overview', icon: LayoutGrid, end: true },
     { to: '/admin/players', label: 'Players', icon: Users },
     { to: '/admin/teams', label: 'Teams', icon: Shield },
     { to: '/admin/matches', label: 'Fixtures', icon: Calendar },
@@ -28,12 +29,10 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#090909] text-[#F4F7F2]">
-      {/* Minimal Top Bar: Role Identity + Icon-Only Logout */}
-      <header className="sticky top-0 z-40 h-14 border-b border-[#262626] bg-[#141414]/95 backdrop-blur-md px-4 flex items-center justify-between">
+      {/* Minimal Top Bar: Official Brand Logo + Role Identity + Icon-Only Logout */}
+      <header className="sticky top-0 z-40 h-14 border-b border-[#262626] bg-[#090909]/95 backdrop-blur-md px-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[#B8F34A] flex items-center justify-center text-[#090909] shrink-0">
-            <Trophy className="w-4 h-4" />
-          </div>
+          <BrandLogo size="sm" />
           <div className="min-w-0">
             <span className="font-bold text-xs tracking-wide uppercase block leading-none text-[#F4F7F2]">
               Admin Console
@@ -63,7 +62,7 @@ export function AdminLayout() {
       {/* Single Bottom Navigation Bar */}
       <nav
         aria-label="Admin navigation"
-        className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t border-[#262626] bg-[#141414]/95 backdrop-blur-md"
+        className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t border-[#262626] bg-[#090909]/95 backdrop-blur-md"
       >
         <div className="max-w-lg mx-auto h-full grid grid-cols-4 items-center px-2">
           {navItems.map(({ to, label, icon: Icon, end }) => (

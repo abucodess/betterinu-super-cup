@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Timer, ClipboardList, History, LogOut } from 'lucide-react';
+import { BrandLogo } from '../components/shared/BrandLogo';
 import { authApi } from '../services/api/auth.api';
 
 export function RefereeLayout() {
@@ -27,14 +28,17 @@ export function RefereeLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#090909] text-[#F4F7F2]">
-      {/* Minimal Pitchside Header with Icon-Only Logout */}
+      {/* Minimal Pitchside Header with Official Brand Logo & Icon-Only Logout */}
       <header className="sticky top-0 z-40 h-14 border-b border-[#262626] bg-[#141414]/95 backdrop-blur-md px-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#FF414D] animate-pulse shrink-0" />
+          <BrandLogo size="sm" />
           <div className="min-w-0">
-            <span className="font-bold text-xs tracking-wider uppercase text-[#F4F7F2] block leading-none">
-              Referee Console
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#FF414D] animate-pulse shrink-0" />
+              <span className="font-bold text-xs tracking-wider uppercase text-[#F4F7F2] block leading-none">
+                Referee Console
+              </span>
+            </div>
             <span className="text-[10px] text-[#9AA69B] truncate block mt-0.5">
               {displayName}
             </span>

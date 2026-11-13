@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import {
   Users,
   Calendar,
-  Trophy,
   Search,
   AlertCircle,
   Activity,
@@ -488,7 +487,7 @@ export function ManagerDashboardPage() {
 
           <Card className="lg:col-span-7 space-y-3">
             <h2 className="text-sm font-bold text-[#F4F7F2] flex items-center gap-2 border-b border-[#303030] pb-2.5">
-              <Trophy className="w-4 h-4 text-[#B8F34A]" />
+              <Activity className="w-4 h-4 text-[#B8F34A]" />
               Individual Squad Output
             </h2>
             <div className="space-y-2">

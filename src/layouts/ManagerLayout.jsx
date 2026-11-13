@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Shield, Users, Calendar, BarChart3, LogOut } from 'lucide-react';
+import { BrandLogo } from '../components/shared/BrandLogo';
 import { authApi } from '../services/api/auth.api';
 
 export function ManagerLayout() {
@@ -28,12 +29,10 @@ export function ManagerLayout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#090909] text-[#F4F7F2]">
-      {/* Minimal Top Header with Icon-Only Logout */}
+      {/* Minimal Top Header with Official Brand Logo & Icon-Only Logout */}
       <header className="sticky top-0 z-40 h-14 border-b border-[#262626] bg-[#141414]/95 backdrop-blur-md px-4 flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[#202020] border border-[#303030] flex items-center justify-center text-[#B8F34A] shrink-0">
-            <Shield className="w-4 h-4" />
-          </div>
+          <BrandLogo size="sm" />
           <div className="min-w-0">
             <span className="font-bold text-xs uppercase tracking-wide block leading-none text-[#F4F7F2]">
               Manager Hub

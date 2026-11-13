@@ -255,7 +255,7 @@ export function LiveTeamAssignmentBoard({
               data-testid={`team-dropzone-${team.short_code}`}
               className={`rounded-xl bg-[#141414] border-2 transition-all duration-150 p-2.5 flex flex-col gap-2 ${
                 isOver
-                  ? 'border-[#B8F34A] bg-[#1a2210]/60 scale-[1.01] shadow-lg'
+                  ? 'border-[#B8F34A] bg-[#090909] scale-[1.01] shadow-lg'
                   : 'border-[#262626]'
               }`}
             >
@@ -352,7 +352,7 @@ export function LiveTeamAssignmentBoard({
         data-testid="unassigned-pool-dropzone"
         className={`rounded-xl bg-[#141414] border-2 transition-all p-3 space-y-2.5 ${
           dragOverTarget === 'UNASSIGNED'
-            ? 'border-[#B8F34A] bg-[#1a2210]/40'
+            ? 'border-[#B8F34A] bg-[#090909]'
             : 'border-[#262626]'
         }`}
       >
