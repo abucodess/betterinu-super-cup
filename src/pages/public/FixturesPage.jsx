@@ -143,12 +143,10 @@ export function FixturesPage() {
           {filteredMatches.map((match, idx) => {
             const matchEvents = allEvents.filter((e) => e.match_id === match.id);
             const isLive = match.status === 'live' || match.status === 'half_time';
-            // Alternate solid bright lime (#B8F34A) and deep charcoal (#161616) cards like Screen 3
             const isLimeCard = idx % 2 === 0;
 
             return (
               <React.Fragment key={match.id}>
-                {/* Subtle centered horizontal connector pill between cards */}
                 <div className="w-7 h-1 rounded-full bg-white/30 mx-auto" />
 
                 <div
@@ -169,7 +167,6 @@ export function FixturesPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between gap-4">
-                    {/* Left Column: Match Title, Teams & Metadata */}
                     <div className="space-y-2.5 min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
@@ -198,7 +195,6 @@ export function FixturesPage() {
                         )}
                       </div>
 
-                      {/* Bold Matchup Headline */}
                       <h2 className="text-lg sm:text-2xl font-black tracking-tight leading-snug">
                         {match.home_team?.name || 'Home Team'}{' '}
                         <span
@@ -213,7 +209,6 @@ export function FixturesPage() {
                         {match.away_team?.name || 'Away Team'}
                       </h2>
 
-                      {/* Sub-caption */}
                       <div
                         className={`flex flex-wrap items-center gap-3 text-xs font-semibold ${
                           isLimeCard ? 'text-[#090909]/75' : 'text-[#9AA69B]'
@@ -228,7 +223,6 @@ export function FixturesPage() {
                       </div>
                     </div>
 
-                    {/* Right Column: Animated Circular Progress Ring */}
                     <CircularRing
                       value={
                         match.status === 'completed'
@@ -249,7 +243,6 @@ export function FixturesPage() {
             );
           })}
 
-          {/* Championship Grand Final Card (1st vs 2nd Place) */}
           <div className="w-7 h-1 rounded-full bg-white/30 mx-auto" />
 
           <div className="rounded-[28px] bg-[#161616] border-2 border-[#B8F34A] p-5 sm:p-6 shadow-[0_16px_40px_rgba(184,243,74,0.12)]">

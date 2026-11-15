@@ -103,10 +103,7 @@ export function LoginPage() {
       {/* Minimal Clean Sign-In Container */}
       <div className="w-full max-w-[360px] space-y-7 animate-slide-up">
         {/* Clean Brand Header */}
-        <div className="text-center space-y-3">
-          <div className="flex justify-center">
-            <BrandLogo size="lg" />
-          </div>
+        <div className="text-center">
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#F4F7F2]">
             Staff Sign In
           </h1>

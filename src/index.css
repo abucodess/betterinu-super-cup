@@ -7,10 +7,14 @@
     color-scheme: dark;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: #090909;
     color: #F4F7F2;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -32,6 +36,48 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #B8F34A;
   }
+}
+
+.font-display {
+  font-family: 'Barlow Condensed', 'Antonio', sans-serif;
+}
+
+.font-fifa-wide {
+  font-family: 'Archivo Black', 'Montserrat', sans-serif;
+  letter-spacing: -0.03em;
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 14s linear infinite;
+}
+
+.writing-vertical-rl {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+@keyframes verticalMarqueeLoop {
+  0% {
+    transform: translate3d(0, 0%, 0);
+  }
+  100% {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+.animate-vertical-marquee {
+  height: max-content;
+  animation: verticalMarqueeLoop 10s linear infinite !important;
+  will-change: transform;
 }
 
 .tabular-nums {

@@ -195,10 +195,10 @@ export function LiveMatchPage() {
               </span>
             </div>
 
-            {/* Center Floating Official Mascot Crest */}
+            {/* Center VS & Venue Badge */}
             <div className="flex flex-col items-center justify-center gap-2">
-              <div className="animate-float">
-                <BrandLogo size="lg" />
+              <div className="px-3.5 py-1.5 rounded-full bg-[#161616] border border-[#B8F34A]/50 text-xs font-black tracking-widest text-[#B8F34A] uppercase">
+                VS
               </div>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#161616] border border-white/10 text-[10px] font-extrabold text-[#B8F34A]">
                 <MapPin className="w-3 h-3" />

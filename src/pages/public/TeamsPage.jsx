@@ -6,8 +6,6 @@ import {
   Search,
   Maximize2,
   Minimize2,
-  Volume2,
-  VolumeX,
   X,
   Radio,
 } from 'lucide-react';
@@ -34,7 +32,7 @@ export function TeamsPage() {
 
   // Live Presentation / Big Screen State
   const [isBigScreen, setIsBigScreen] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled] = useState(true);
   const [spotlightReveal, setSpotlightReveal] = useState(null);
   const [latestAssignment, setLatestAssignment] = useState(null);
   const [newlyAssignedIds, setNewlyAssignedIds] = useState({});
@@ -472,18 +470,6 @@ export function TeamsPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSoundEnabled((v) => !v)}
-            aria-label={soundEnabled ? 'Mute sound' : 'Enable sound'}
-            className="w-10 h-10 rounded-full bg-[#161616] text-[#9AA69B] hover:text-[#F4F7F2] border border-white/[0.08] flex items-center justify-center transition-colors"
-          >
-            {soundEnabled ? (
-              <Volume2 className="w-4 h-4 text-[#B8F34A]" />
-            ) : (
-              <VolumeX className="w-4 h-4" />
-            )}
-          </button>
           <button
             type="button"
             onClick={() => setIsBigScreen((v) => !v)}
