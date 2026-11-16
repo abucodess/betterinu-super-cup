@@ -16,6 +16,11 @@ export default defineConfig({
     host: '0.0.0.0',
     allowedHosts: true,
     open: false,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
   },
   build: {
     rollupOptions: {

@@ -62,7 +62,7 @@ export function HeroSection() {
       id="hero"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative h-screen h-dvh min-h-[640px] w-full bg-[#001AFF] text-white overflow-hidden select-none flex flex-col justify-between"
+      className="relative h-full w-full bg-[#001AFF] text-white overflow-hidden select-none flex flex-col justify-between"
     >
       {/* Top Tri-Color Championship Ribbon (Blue • Yellow • Red) */}
       <div
@@ -81,7 +81,7 @@ export function HeroSection() {
 
       {/* Top-Right Curved Vibrant Red Corner Shape */}
       <div
-        className="pointer-events-none absolute top-0 right-0 w-[52vw] sm:w-[36vw] h-[34vh] sm:h-[46vh] bg-[#FF1E27] z-0 transition-transform duration-500"
+        className="pointer-events-none absolute top-0 right-0 w-[52%] sm:w-[36%] h-[34%] sm:h-[46%] bg-[#FF1E27] z-0 transition-transform duration-500"
         style={{
           clipPath: 'ellipse(92% 88% at 100% 0%)',
         }}
@@ -89,7 +89,7 @@ export function HeroSection() {
 
       {/* Bottom-Right Curved Deep Emerald Corner Shape */}
       <div
-        className="pointer-events-none absolute bottom-0 right-0 w-[55vw] sm:w-[38vw] h-[38vh] sm:h-[52vh] bg-[#00B140] z-0 transition-transform duration-500"
+        className="pointer-events-none absolute bottom-0 right-0 w-[55%] sm:w-[38%] h-[38%] sm:h-[52%] bg-[#00B140] z-0 transition-transform duration-500"
         style={{
           clipPath: 'ellipse(92% 88% at 100% 100%)',
         }}
@@ -154,7 +154,7 @@ export function HeroSection() {
             transform: `translate3d(${parallax.x}px, 0px, 0)`,
             transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
-          className="relative h-[86vh] sm:h-[94vh] w-auto flex items-end justify-center"
+          className="relative h-[86%] sm:h-[93%] w-auto flex items-end justify-center"
         >
           <img
             src={BETTY_MASCOT_URL}
