@@ -7,7 +7,12 @@ import {
 } from 'lucide-react';
 import { cloudinaryService } from '../../services/cloudinary/cloudinary.service';
 
-export function PlayerImageUploader({ value, photoUrl = '', onChange }) {
+export function PlayerImageUploader({
+  value,
+  photoUrl = '',
+  onChange,
+  label = 'eFootball Player Card Image (PNG, JPG, WebP)',
+}) {
   const currentUrl = value !== undefined ? value : photoUrl;
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -45,7 +50,7 @@ export function PlayerImageUploader({ value, photoUrl = '', onChange }) {
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <label className="block text-xs font-medium text-[#9AA69B]">
-          eFootball Player Card Image (PNG, JPG, WebP)
+          {label}
         </label>
         {uploadStatus && !error && (
           <span className="text-[11px] font-medium flex items-center gap-1 text-[#22C55E]">

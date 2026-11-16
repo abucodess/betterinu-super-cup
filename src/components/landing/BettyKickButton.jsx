@@ -26,16 +26,16 @@ const PHASE_TIMINGS = {
 };
 
 const IMPACT_PARTICLES = [
-  { id: 1, tx: '36px', ty: '-32px', color: '#B8F34A', size: 5 },
-  { id: 2, tx: '48px', ty: '-14px', color: '#FFFFFF', size: 4 },
-  { id: 3, tx: '22px', ty: '-44px', color: '#B8F34A', size: 4 },
-  { id: 4, tx: '-18px', ty: '-26px', color: '#FFFFFF', size: 3.5 },
-  { id: 5, tx: '42px', ty: '10px', color: '#B8F34A', size: 4 },
-  { id: 6, tx: '16px', ty: '-20px', color: '#00B140', size: 4 },
+  { id: 1, tx: '36px', ty: '-32px', color: '#FFC600', size: 5 },
+  { id: 2, tx: '48px', ty: '-14px', color: '#FF1E27', size: 4.5 },
+  { id: 3, tx: '22px', ty: '-44px', color: '#001AFF', size: 4.5 },
+  { id: 4, tx: '-18px', ty: '-26px', color: '#FFC600', size: 4 },
+  { id: 5, tx: '42px', ty: '10px', color: '#FF1E27', size: 4 },
+  { id: 6, tx: '16px', ty: '-20px', color: '#FFFFFF', size: 4 },
 ];
 
 export function BettyKickButton({
-  label = 'EXPLORE THE CUP',
+  label = 'KICKOFF',
   onClick,
   to,
   variant = 'primary',
@@ -159,16 +159,16 @@ export function BettyKickButton({
 
   // Compact / small button dimensions
   const sizeDims = {
-    sm: { width: 'w-[175px] sm:w-[192px]', height: 'h-[38px] sm:h-[40px]', text: 'text-[11px] sm:text-xs' },
-    md: { width: 'w-[190px] sm:w-[210px]', height: 'h-[40px] sm:h-[42px]', text: 'text-[11px] sm:text-xs' },
+    sm: { width: 'w-[156px] sm:w-[172px]', height: 'h-[38px] sm:h-[40px]', text: 'text-[11px] sm:text-xs' },
+    md: { width: 'w-[175px] sm:w-[195px]', height: 'h-[40px] sm:h-[42px]', text: 'text-[11px] sm:text-xs' },
     lg: { width: 'w-[195px] sm:w-[215px]', height: 'h-[42px] sm:h-[44px]', text: 'text-xs' },
-  }[size] || { width: 'w-[185px] sm:w-[205px]', height: 'h-[40px] sm:h-[42px]', text: 'text-[11px] sm:text-xs' };
+  }[size] || { width: 'w-[165px] sm:w-[180px]', height: 'h-[40px] sm:h-[42px]', text: 'text-[11px] sm:text-xs' };
 
-  // Transparent button styling across variants
+  // Transparent button styling with golden yellow & white accents
   const variantClasses =
     variant === 'dark'
       ? 'bg-transparent text-[#080808] border-2 border-[#080808] hover:bg-[#080808]/10 shadow-[0_6px_18px_rgba(0,0,0,0.12)]'
-      : 'bg-transparent text-white border-2 border-white/90 hover:bg-white/15 hover:border-white backdrop-blur-[2px] shadow-[0_6px_20px_rgba(0,0,0,0.18)]';
+      : 'bg-black/25 text-white border-2 border-[#FFC600] hover:bg-[#FFC600]/20 hover:border-white backdrop-blur-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.28)]';
 
   // Compute small Mini Betty's body transform across phases
   const getBettyBodyStyle = () => {
@@ -376,9 +376,9 @@ export function BettyKickButton({
             >
               <defs>
                 <linearGradient id="bettyKickTrailGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#B8F34A" stopOpacity="0.95" />
-                  <stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.65" />
-                  <stop offset="100%" stopColor="#B8F34A" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#FFC600" stopOpacity="0.95" />
+                  <stop offset="55%" stopColor="#FF1E27" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#001AFF" stopOpacity="0" />
                 </linearGradient>
               </defs>
               <path
@@ -459,27 +459,36 @@ export function BettyKickButton({
               : 'opacity-0 scale-75 pointer-events-none'
           }`}
         >
-          {/* Small Football Pentagon Decorative Cue */}
+          {/* Classic Football (Soccer Ball) Icon */}
           <svg
-            width="13"
-            height="13"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             aria-hidden="true"
-            className="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:rotate-45 group-hover:scale-110"
+            className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:rotate-45 group-hover:scale-110"
           >
             <circle
               cx="12"
               cy="12"
               r="10"
               stroke="currentColor"
-              strokeWidth="2.2"
+              strokeWidth="2"
               fill="none"
             />
+            {/* Center Pentagon Panel */}
             <polygon
-              points="12,7 16.5,10.2 14.8,15.5 9.2,15.5 7.5,10.2"
+              points="12,7.2 16.5,10.5 14.8,15.8 9.2,15.8 7.5,10.5"
               fill="currentColor"
             />
+            {/* Football Panel Seams */}
+            <g stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+              <line x1="12" y1="7.2" x2="12" y2="2.2" />
+              <line x1="16.5" y1="10.5" x2="21.2" y2="8.8" />
+              <line x1="14.8" y1="15.8" x2="18.2" y2="20" />
+              <line x1="9.2" y1="15.8" x2="5.8" y2="20" />
+              <line x1="7.5" y1="10.5" x2="2.8" y2="8.8" />
+            </g>
           </svg>
 
           <span>{loading ? 'LOADING...' : label}</span>

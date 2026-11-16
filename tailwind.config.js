@@ -8,31 +8,46 @@ export default {
     extend: {
       colors: {
         brand: {
-          accent: '#B8F34A',
-          hover: '#A5E035',
-          dark: '#090909',
+          yellow: '#FFC600',
+          yellowHover: '#E6B200',
+          blue: '#072AC8',
+          blueHover: '#05209E',
+          accent: '#FFC600',
+          hover: '#E6B200',
+          dark: '#172033',
         },
         surface: {
-          main: '#090909',
-          card: '#141414',
-          secondary: '#202020',
-          border: '#303030',
+          main: '#F5F7FC',
+          secondary: '#FFFFFF',
+          card: '#FFFFFF',
+          cardAlt: '#F8FAFF',
+          yellowSoft: '#FFF6D8',
+          yellowCard: '#FFF9E8',
+          blueSoft: '#EAF0FF',
+          blueCard: '#EEF2FF',
+          border: '#E2E8F0',
+          borderStrong: '#CBD5E1',
+          borderBlue: '#C7D5FF',
+          borderYellow: '#F2D56B',
         },
         text: {
-          primary: '#F4F7F2',
-          secondary: '#9AA69B',
-          muted: '#6E7A6F',
+          primary: '#172033',
+          secondary: '#64748B',
+          muted: '#94A3B8',
+          onBlue: '#FFFFFF',
+          onYellow: '#172033',
         },
         status: {
-          live: '#FF414D',
-          success: '#22C55E',
-          warning: '#F59E0B',
-          error: '#EF4444',
-          info: '#3B82F6',
+          live: '#DC2626',
+          success: '#16A34A',
+          warning: '#D97706',
+          error: '#DC2626',
+          info: '#2563EB',
+          neutral: '#64748B',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       borderRadius: {
         '2xl': '16px',
@@ -44,4 +59,5 @@ export default {
   },
   plugins: [],
 }
+
 

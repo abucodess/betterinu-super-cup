@@ -1,10 +1,9 @@
 import React from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { ShieldAlert } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { useNavigate } from 'react-router-dom'
 
 /**
  * Centralized Route Guard adhering to ARCHITECTURE.md §6.7 & REQUIREMENTS.md FR1.6
@@ -18,9 +17,9 @@ export function ProtectedRoute({ children, allowedRoles = [] }) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#090909] text-[#F4F7F2] flex flex-col items-center justify-center p-4">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 border-2 border-[#303030] border-t-[#B8F34A] rounded-full animate-spin" />
-          <span className="text-xs uppercase tracking-wider text-[#9AA69B] font-semibold">
+        <div className="flex flex-col items-center gap-3 bg-[#141414] border border-[#262626] rounded-2xl px-8 py-6 shadow-xl">
+          <div className="h-9 w-9 border-2 border-[#262626] border-t-[#FFC600] rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-[#9AA69B]">
             Verifying Session...
           </span>
         </div>
@@ -35,7 +34,6 @@ export function ProtectedRoute({ children, allowedRoles = [] }) {
 
   // 3. Role authorization check
   if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-    // Determine proper destination based on current role
     const defaultPath =
       role === 'super_admin'
         ? '/admin'
@@ -43,13 +41,13 @@ export function ProtectedRoute({ children, allowedRoles = [] }) {
         ? '/manager'
         : role === 'referee'
         ? '/referee'
-        : '/'
+        : '/public'
 
     return (
       <div className="min-h-screen bg-[#090909] text-[#F4F7F2] flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-6 text-center border-[#303030]">
+        <Card className="max-w-md w-full p-6 text-center">
           <CardHeader>
-            <div className="h-12 w-12 rounded-2xl bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mx-auto mb-3">
+            <div className="h-12 w-12 rounded-xl bg-[#FF1E27]/15 border border-[#FF1E27]/40 flex items-center justify-center text-[#FF414D] mx-auto mb-3">
               <ShieldAlert className="h-6 w-6" />
             </div>
             <CardTitle className="text-lg font-bold text-[#F4F7F2]">
@@ -57,11 +55,12 @@ export function ProtectedRoute({ children, allowedRoles = [] }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-xs text-[#9AA69B]">
-              Your account role (<span className="text-[#B8F34A] font-semibold">{role}</span>) does not have permission to access this management area.
+            <p className="text-xs sm:text-sm text-[#9AA69B] leading-relaxed">
+              Your account role (<span className="text-[#FFC600] font-bold">{role}</span>) does not have permission to access this management area.
             </p>
             <Button
-              className="w-full font-bold"
+              variant="primary"
+              className="w-full"
               onClick={() => navigate(defaultPath, { replace: true })}
             >
               Return to Your Dashboard
@@ -74,4 +73,5 @@ export function ProtectedRoute({ children, allowedRoles = [] }) {
 
   return children
 }
+
 

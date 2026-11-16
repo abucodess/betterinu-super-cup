@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * Standard Status Badge adhering to DESIGN_SYSTEM.md §2.3 and §10.3
+ * Standardized Status & Role Badge — BetterInU Football League Dark Sports Theme
  */
 export function Badge({
   children,
@@ -13,31 +13,37 @@ export function Badge({
 }) {
   const variants = {
     neutral: 'bg-[#202020] text-[#9AA69B] border border-[#303030]',
-    brand: 'bg-[#B8F34A]/10 text-[#B8F34A] border border-[#B8F34A]/30',
-    live: 'bg-[#FF414D]/10 text-[#FF414D] border border-[#FF414D]/30',
-    success: 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30',
-    warning: 'bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/30',
-    error: 'bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/30',
-    info: 'bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/30',
+    brand: 'bg-[#001AFF]/20 text-[#60A5FA] border border-[#001AFF]/45',
+    blue: 'bg-[#001AFF] text-[#FFFFFF] border border-[#3B82F6]/50',
+    accent: 'bg-[#FFC600] text-[#090909] border border-[#FFC600]',
+    yellow: 'bg-[#FFC600]/15 text-[#FFC600] border border-[#FFC600]/40',
+    live: 'bg-[#FF1E27]/20 text-[#FF414D] border border-[#FF1E27]/45',
+    red: 'bg-[#FF1E27] text-[#FFFFFF] border border-[#FF1E27]',
+    success: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/35',
+    warning: 'bg-amber-500/15 text-[#FFC600] border border-amber-500/35',
+    error: 'bg-red-500/15 text-[#FF414D] border border-red-500/35',
+    info: 'bg-blue-500/15 text-blue-400 border border-blue-500/35',
   }
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide select-none',
-        variants[variant],
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold tracking-tight select-none whitespace-nowrap shrink-0',
+        variants[variant] || variants.neutral,
         className
       )}
       {...props}
     >
       {isLive && (
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF414D] opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF414D]"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF1E27] opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF1E27]"></span>
         </span>
       )}
       {children}
     </span>
   )
 }
+
+
 

@@ -55,10 +55,12 @@ export function AdminDashboardPage() {
   // Player Dossier Modal
   const [selectedPlayerForProfile, setSelectedPlayerForProfile] = useState(null);
 
-  // Add Player Form State
+  // Add Player / Non-Player Supporter Form State
+  const [isNonPlayerMode, setIsNonPlayerMode] = useState(false);
   const [playerName, setPlayerName] = useState('');
   const [jerseyNumber, setJerseyNumber] = useState('');
   const [position, setPosition] = useState('FW');
+  const [supporterDetails, setSupporterDetails] = useState('');
   const [playerTeamId, setPlayerTeamId] = useState('');
   const [playerPhotoUrl, setPlayerPhotoUrl] = useState('');
   const [playerError, setPlayerError] = useState('');
@@ -70,11 +72,13 @@ export function AdminDashboardPage() {
   const [allocationFilter, setAllocationFilter] = useState('ALL');
   const [playerViewMode, setPlayerViewMode] = useState('cards');
 
-  // Edit Player Modal State
+  // Edit Player / Supporter Modal State
   const [editingPlayer, setEditingPlayer] = useState(null);
+  const [editIsNonPlayer, setEditIsNonPlayer] = useState(false);
   const [editPlayerName, setEditPlayerName] = useState('');
   const [editPlayerJersey, setEditPlayerJersey] = useState('');
   const [editPlayerPos, setEditPlayerPos] = useState('FW');
+  const [editSupporterDetails, setEditSupporterDetails] = useState('');
   const [editPlayerTeamId, setEditPlayerTeamId] = useState('');
   const [editPlayerPhotoUrl, setEditPlayerPhotoUrl] = useState('');
   const [editPlayerError, setEditPlayerError] = useState('');
@@ -175,15 +179,20 @@ export function AdminDashboardPage() {
     onSuccess: (created) => {
       setPlayerName('');
       setJerseyNumber('');
+      setSupporterDetails('');
       setPlayerPhotoUrl('');
       setPlayerTeamId('');
       setPlayerError('');
-      setPlayerSuccess(`Added ${created.name}`);
+      setPlayerSuccess(
+        created.is_non_player
+          ? `Added Team Supporter: ${created.name}`
+          : `Added Player: ${created.name}`
+      );
       setTimeout(() => setPlayerSuccess(''), 3000);
       queryClient.invalidateQueries({ queryKey: ['players'] });
       queryClient.invalidateQueries({ queryKey: ['player_stats'] });
     },
-    onError: (err) => setPlayerError(err.message || 'Failed to add player'),
+    onError: (err) => setPlayerError(err.message || 'Failed to add entry'),
   });
 
   const updatePlayerMutation = useMutation({
@@ -294,6 +303,25 @@ export function AdminDashboardPage() {
     e.preventDefault();
     setPlayerError('');
     setPlayerSuccess('');
+
+    if (isNonPlayerMode) {
+      if (!playerName.trim()) {
+        setPlayerError('Supporter name is required.');
+        return;
+      }
+      addPlayerMutation.mutate({
+        name: playerName.trim(),
+        details: supporterDetails.trim() || 'Team Supporter',
+        is_non_player: true,
+        member_type: 'SUPPORTER',
+        position: 'SUP',
+        jersey_number: 0,
+        team_id: playerTeamId || null,
+        photo_url: playerPhotoUrl ? playerPhotoUrl.trim() : null,
+      });
+      return;
+    }
+
     if (!playerName.trim() || !jerseyNumber) {
       setPlayerError('Player name and jersey number are required.');
       return;
@@ -307,16 +335,23 @@ export function AdminDashboardPage() {
       name: playerName.trim(),
       jersey_number: num,
       position,
+      is_non_player: false,
+      member_type: 'PLAYER',
       team_id: playerTeamId || null,
       photo_url: playerPhotoUrl ? playerPhotoUrl.trim() : null,
     });
   };
 
   const openEditPlayerModal = (player) => {
+    const nonPlayer = Boolean(
+      player.is_non_player || player.position === 'SUP' || player.jersey_number === 0
+    );
     setEditingPlayer(player);
+    setEditIsNonPlayer(nonPlayer);
     setEditPlayerName(player.name || '');
     setEditPlayerJersey(String(player.jersey_number || 10));
-    setEditPlayerPos(player.position || 'FW');
+    setEditPlayerPos(nonPlayer ? 'FW' : player.position || 'FW');
+    setEditSupporterDetails(player.details || 'Team Supporter');
     setEditPlayerTeamId(player.team_id || '');
     setEditPlayerPhotoUrl(player.photo_url || '');
     setEditPlayerError('');
@@ -385,8 +420,14 @@ export function AdminDashboardPage() {
       const matchesSearch =
         !playerSearch.trim() ||
         p.name.toLowerCase().includes(playerSearch.toLowerCase()) ||
+        (p.details && p.details.toLowerCase().includes(playerSearch.toLowerCase())) ||
         String(p.jersey_number).includes(playerSearch.trim());
-      const matchesPosition = positionFilter === 'ALL' || p.position === positionFilter;
+      const matchesPosition =
+        positionFilter === 'ALL'
+          ? true
+          : positionFilter === 'SUP'
+          ? Boolean(p.is_non_player || p.position === 'SUP')
+          : !p.is_non_player && p.position === positionFilter;
       const matchesAllocation =
         allocationFilter === 'ALL' ||
         (allocationFilter === 'ALLOCATED' && p.team_id) ||
@@ -395,9 +436,13 @@ export function AdminDashboardPage() {
     });
   }, [players, playerSearch, positionFilter, allocationFilter]);
 
-  const gkCount = players.filter((p) => p.is_goalkeeper || p.position === 'GK').length;
-  const outfieldCount = players.filter((p) => !p.is_goalkeeper && p.position !== 'GK').length;
-  const allocatedCount = players.filter((p) => p.team_id).length;
+  const activePlayersOnly = players.filter((p) => !p.is_non_player && p.position !== 'SUP');
+  const supporterCount = players.filter((p) => p.is_non_player || p.position === 'SUP').length;
+  const gkCount = activePlayersOnly.filter((p) => p.is_goalkeeper || p.position === 'GK').length;
+  const outfieldCount = activePlayersOnly.filter(
+    (p) => !p.is_goalkeeper && p.position !== 'GK'
+  ).length;
+  const allocatedCount = activePlayersOnly.filter((p) => p.team_id).length;
 
   return (
     <div className="space-y-5">
@@ -405,7 +450,7 @@ export function AdminDashboardPage() {
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#F4F7F2]">
           {activeTab === 'players'
-            ? 'Player Cards'
+            ? 'Players & Team Supporters'
             : activeTab === 'teams'
             ? 'Teams & Draft'
             : activeTab === 'matches'
@@ -428,18 +473,21 @@ export function AdminDashboardPage() {
       <div className="grid grid-cols-4 gap-2 sm:gap-4 tabular-nums">
         <div className="p-3 sm:p-4 rounded-xl bg-[#141414] border border-[#262626]">
           <span className="text-[11px] text-[#9AA69B] block">Players</span>
-          <p className="text-lg sm:text-2xl font-bold text-[#F4F7F2] mt-0.5">{players.length}</p>
+          <p className="text-lg sm:text-2xl font-bold text-[#F4F7F2] mt-0.5">
+            {activePlayersOnly.length}
+          </p>
           <span className="text-[10px] text-[#9AA69B] hidden sm:block">
             {gkCount} GK · {outfieldCount} Outfield
+            {supporterCount > 0 ? ` · ${supporterCount} Sup.` : ''}
           </span>
         </div>
         <div className="p-3 sm:p-4 rounded-xl bg-[#141414] border border-[#262626]">
           <span className="text-[11px] text-[#9AA69B] block">Allocated</span>
           <p className="text-lg sm:text-2xl font-bold text-[#B8F34A] mt-0.5">
-            {allocatedCount}/{players.length}
+            {allocatedCount}/{activePlayersOnly.length}
           </p>
           <span className="text-[10px] text-[#9AA69B] hidden sm:block">
-            {players.length - allocatedCount} unallocated
+            {activePlayersOnly.length - allocatedCount} unallocated
           </span>
         </div>
         <div className="p-3 sm:p-4 rounded-xl bg-[#141414] border border-[#262626]">
@@ -632,12 +680,12 @@ export function AdminDashboardPage() {
       {/* TAB 2: PLAYERS (Add, Edit, Delete, Transparent PNG Upload) */}
       {activeTab === 'players' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Left: Add Player Panel */}
+          {/* Left: Add Player / Non-Player Supporter Panel */}
           <Card className="lg:col-span-4 space-y-4 h-fit">
             <div className="flex items-center justify-between border-b border-[#262626] pb-3">
               <h2 className="text-base font-semibold text-[#F4F7F2] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#B8F34A]" />
-                Add Player
+                {isNonPlayerMode ? 'Add Non-Player Supporter' : 'Add Player'}
               </h2>
               <button
                 type="button"
@@ -646,6 +694,38 @@ export function AdminDashboardPage() {
               >
                 <Upload className="w-3.5 h-3.5" />
                 Bulk CSV
+              </button>
+            </div>
+
+            {/* Segmented Mode Toggle: On-Pitch Player vs Non-Player Team Supporter */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#202020] border border-[#303030]">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsNonPlayerMode(false);
+                  setPlayerError('');
+                }}
+                className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all ${
+                  !isNonPlayerMode
+                    ? 'bg-[#B8F34A] text-[#090909] shadow-sm'
+                    : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                }`}
+              >
+                On-Pitch Player
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsNonPlayerMode(true);
+                  setPlayerError('');
+                }}
+                className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all ${
+                  isNonPlayerMode
+                    ? 'bg-[#B8F34A] text-[#090909] shadow-sm'
+                    : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                }`}
+              >
+                Non-Player (Supporter)
               </button>
             </div>
 
@@ -665,45 +745,63 @@ export function AdminDashboardPage() {
 
             <form onSubmit={handleAddPlayer} className="space-y-3.5">
               <Input
-                label="Player Name"
-                placeholder="e.g. Lionel Messi"
+                label={isNonPlayerMode ? 'Supporter Name' : 'Player Name'}
+                placeholder={isNonPlayerMode ? 'e.g. Alex Mathew' : 'e.g. Lionel Messi'}
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 required
               />
 
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Jersey Number"
-                  type="number"
-                  min="1"
-                  max="99"
-                  placeholder="10"
-                  value={jerseyNumber}
-                  onChange={(e) => setJerseyNumber(e.target.value)}
-                  required
-                />
+              {isNonPlayerMode ? (
                 <div>
                   <label className="block text-xs font-medium text-[#9AA69B] mb-1.5">
-                    Position
+                    Supporter Role &amp; Details
                   </label>
-                  <select
-                    value={position}
-                    onChange={(e) => setPosition(e.target.value)}
-                    aria-label="Position"
-                    className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2.5 text-sm text-[#F4F7F2] focus:outline-none focus:border-[#B8F34A]"
-                  >
-                    <option value="GK">GK — Goalkeeper</option>
-                    <option value="CB">CB — Defender</option>
-                    <option value="MF">MF — Midfielder</option>
-                    <option value="FW">FW — Forward</option>
-                  </select>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Team Supporter, Cheer Squad, Batch Coordinator..."
+                    value={supporterDetails}
+                    onChange={(e) => setSupporterDetails(e.target.value)}
+                    className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2 text-xs text-[#F4F7F2] placeholder-[#9AA69B]/60 focus:outline-none focus:border-[#B8F34A]"
+                  />
+                  <span className="text-[10px] text-[#9AA69B] block mt-1">
+                    Non-players support the team off the pitch and do not take up a 5v5 playing slot.
+                  </span>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    label="Jersey Number"
+                    type="number"
+                    min="1"
+                    max="99"
+                    placeholder="10"
+                    value={jerseyNumber}
+                    onChange={(e) => setJerseyNumber(e.target.value)}
+                    required
+                  />
+                  <div>
+                    <label className="block text-xs font-medium text-[#9AA69B] mb-1.5">
+                      Position
+                    </label>
+                    <select
+                      value={position}
+                      onChange={(e) => setPosition(e.target.value)}
+                      aria-label="Position"
+                      className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2.5 text-sm text-[#F4F7F2] focus:outline-none focus:border-[#B8F34A]"
+                    >
+                      <option value="GK">GK — Goalkeeper</option>
+                      <option value="CB">CB — Defender</option>
+                      <option value="MF">MF — Midfielder</option>
+                      <option value="FW">FW — Forward</option>
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-[#9AA69B] mb-1.5">
-                  Team Assignment
+                  {isNonPlayerMode ? 'Supporting Team' : 'Team Assignment'}
                 </label>
                 <select
                   value={playerTeamId}
@@ -711,7 +809,9 @@ export function AdminDashboardPage() {
                   aria-label="Team Assignment"
                   className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2 text-xs text-[#F4F7F2] focus:outline-none focus:border-[#B8F34A]"
                 >
-                  <option value="">Unallocated (Draft Pool)</option>
+                  <option value="">
+                    {isNonPlayerMode ? 'All Teams / Unassigned' : 'Unallocated (Draft Pool)'}
+                  </option>
                   {teams.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} ({t.short_code})
@@ -723,6 +823,11 @@ export function AdminDashboardPage() {
               <PlayerImageUploader
                 value={playerPhotoUrl}
                 onChange={setPlayerPhotoUrl}
+                label={
+                  isNonPlayerMode
+                    ? 'Supporter Photo (Optional — Not Required)'
+                    : 'eFootball Player Card Image (Optional)'
+                }
               />
 
               {(playerName.trim() || playerPhotoUrl) && (
@@ -731,10 +836,12 @@ export function AdminDashboardPage() {
                     <PlayerCard
                       player={{
                         id: 'preview',
-                        name: playerName.trim() || 'PLAYER',
-                        jersey_number: Number(jerseyNumber) || 10,
-                        position,
-                        is_goalkeeper: position === 'GK',
+                        name: playerName.trim() || (isNonPlayerMode ? 'SUPPORTER' : 'PLAYER'),
+                        jersey_number: isNonPlayerMode ? 0 : Number(jerseyNumber) || 10,
+                        position: isNonPlayerMode ? 'SUP' : position,
+                        is_non_player: isNonPlayerMode,
+                        details: supporterDetails.trim() || 'Team Supporter',
+                        is_goalkeeper: !isNonPlayerMode && position === 'GK',
                         photo_url: playerPhotoUrl || null,
                       }}
                       team={teams.find((t) => t.id === playerTeamId)}
@@ -750,7 +857,7 @@ export function AdminDashboardPage() {
                 isLoading={addPlayerMutation.isPending}
               >
                 <Plus className="w-4 h-4" />
-                Save Player
+                {isNonPlayerMode ? 'Save Supporter' : 'Save Player'}
               </Button>
             </form>
           </Card>
@@ -762,7 +869,7 @@ export function AdminDashboardPage() {
                 <Search className="w-4 h-4 text-[#9AA69B] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search player..."
+                  placeholder="Search player or supporter..."
                   value={playerSearch}
                   onChange={(e) => setPlayerSearch(e.target.value)}
                   className="w-full bg-[#202020] border border-[#303030] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[#F4F7F2] placeholder-[#9AA69B]/60 focus:outline-none focus:border-[#B8F34A]"
@@ -770,7 +877,7 @@ export function AdminDashboardPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-1.5">
-                {['ALL', 'GK', 'CB', 'MF', 'FW'].map((pos) => (
+                {['ALL', 'GK', 'CB', 'MF', 'FW', 'SUP'].map((pos) => (
                   <button
                     key={pos}
                     type="button"
@@ -781,7 +888,7 @@ export function AdminDashboardPage() {
                         : 'bg-[#202020] text-[#9AA69B] hover:text-[#F4F7F2] border border-[#303030]'
                     }`}
                   >
-                    {pos}
+                    {pos === 'SUP' ? 'Supporters' : pos}
                   </button>
                 ))}
 
@@ -894,20 +1001,29 @@ export function AdminDashboardPage() {
                         return (
                           <tr key={p.id} className="hover:bg-[#202020]/40">
                             <td className="py-2.5 px-4 font-bold tabular-nums text-[#9AA69B]">
-                              #{p.jersey_number}
+                              {p.is_non_player ? 'SUP' : `#${p.jersey_number}`}
                             </td>
                             <td className="py-2.5 px-4">
                               <button
                                 type="button"
                                 onClick={() => setSelectedPlayerForProfile(p)}
-                                className="font-semibold text-[#F4F7F2] hover:text-[#B8F34A]"
+                                className="font-semibold text-[#F4F7F2] hover:text-[#B8F34A] text-left"
                               >
                                 {p.name}
+                                {p.is_non_player && p.details && (
+                                  <span className="block text-[11px] font-normal text-[#9AA69B]">
+                                    {p.details}
+                                  </span>
+                                )}
                               </button>
                             </td>
                             <td className="py-2.5 px-4">
-                              <Badge variant={p.position === 'GK' ? 'accent' : 'neutral'}>
-                                {p.position}
+                              <Badge
+                                variant={
+                                  p.is_non_player || p.position === 'GK' ? 'accent' : 'neutral'
+                                }
+                              >
+                                {p.is_non_player ? 'SUPPORTER' : p.position}
                               </Badge>
                             </td>
                             <td className="py-2.5 px-4 text-xs">
@@ -1359,7 +1475,7 @@ export function AdminDashboardPage() {
         </div>
       )}
 
-      {/* EDIT PLAYER MODAL */}
+      {/* EDIT PLAYER / SUPPORTER MODAL */}
       {editingPlayer && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
@@ -1370,7 +1486,7 @@ export function AdminDashboardPage() {
           <Card className="w-full max-w-md space-y-4 my-8">
             <div className="flex items-center justify-between border-b border-[#262626] pb-3">
               <h3 id="edit-player-modal-title" className="font-semibold text-[#F4F7F2]">
-                Edit Player
+                {editIsNonPlayer ? 'Edit Non-Player Supporter' : 'Edit Player'}
               </h3>
               <button
                 type="button"
@@ -1388,71 +1504,126 @@ export function AdminDashboardPage() {
               </div>
             )}
 
+            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#202020] border border-[#303030]">
+              <button
+                type="button"
+                onClick={() => setEditIsNonPlayer(false)}
+                className={`py-1.5 px-2.5 rounded-lg text-xs font-bold transition-all ${
+                  !editIsNonPlayer
+                    ? 'bg-[#B8F34A] text-[#090909]'
+                    : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                }`}
+              >
+                On-Pitch Player
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditIsNonPlayer(true)}
+                className={`py-1.5 px-2.5 rounded-lg text-xs font-bold transition-all ${
+                  editIsNonPlayer
+                    ? 'bg-[#B8F34A] text-[#090909]'
+                    : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                }`}
+              >
+                Non-Player (Supporter)
+              </button>
+            </div>
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 setEditPlayerError('');
                 if (!editPlayerName.trim()) {
-                  setEditPlayerError('Player name is required.');
+                  setEditPlayerError('Name is required.');
                   return;
                 }
                 updatePlayerMutation.mutate({
                   id: editingPlayer.id,
-                  updates: {
-                    name: editPlayerName.trim(),
-                    jersey_number: Number(editPlayerJersey),
-                    position: editPlayerPos,
-                    team_id: editPlayerTeamId || null,
-                    photo_url: editPlayerPhotoUrl ? editPlayerPhotoUrl.trim() : null,
-                  },
+                  updates: editIsNonPlayer
+                    ? {
+                        name: editPlayerName.trim(),
+                        details: editSupporterDetails.trim() || 'Team Supporter',
+                        is_non_player: true,
+                        member_type: 'SUPPORTER',
+                        position: 'SUP',
+                        jersey_number: 0,
+                        team_id: editPlayerTeamId || null,
+                        photo_url: editPlayerPhotoUrl ? editPlayerPhotoUrl.trim() : null,
+                      }
+                    : {
+                        name: editPlayerName.trim(),
+                        jersey_number: Number(editPlayerJersey) || 10,
+                        position: editPlayerPos,
+                        is_non_player: false,
+                        member_type: 'PLAYER',
+                        team_id: editPlayerTeamId || null,
+                        photo_url: editPlayerPhotoUrl ? editPlayerPhotoUrl.trim() : null,
+                      },
                 });
               }}
               className="space-y-3.5"
             >
               <Input
-                label="Player Name"
+                label={editIsNonPlayer ? 'Supporter Name' : 'Player Name'}
                 value={editPlayerName}
                 onChange={(e) => setEditPlayerName(e.target.value)}
                 required
               />
 
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Jersey Number"
-                  type="number"
-                  min="1"
-                  max="99"
-                  value={editPlayerJersey}
-                  onChange={(e) => setEditPlayerJersey(e.target.value)}
-                  required
-                />
+              {editIsNonPlayer ? (
                 <div>
                   <label className="block text-xs font-medium text-[#9AA69B] mb-1.5">
-                    Position
+                    Supporter Role &amp; Details
                   </label>
-                  <select
-                    value={editPlayerPos}
-                    onChange={(e) => setEditPlayerPos(e.target.value)}
-                    className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2.5 text-sm text-[#F4F7F2]"
-                  >
-                    <option value="GK">GK — Goalkeeper</option>
-                    <option value="CB">CB — Defender</option>
-                    <option value="MF">MF — Midfielder</option>
-                    <option value="FW">FW — Forward</option>
-                  </select>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Team Supporter, Cheer Squad, Batch Coordinator..."
+                    value={editSupporterDetails}
+                    onChange={(e) => setEditSupporterDetails(e.target.value)}
+                    className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2 text-xs text-[#F4F7F2] focus:outline-none focus:border-[#B8F34A]"
+                  />
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    label="Jersey Number"
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={editPlayerJersey}
+                    onChange={(e) => setEditPlayerJersey(e.target.value)}
+                    required
+                  />
+                  <div>
+                    <label className="block text-xs font-medium text-[#9AA69B] mb-1.5">
+                      Position
+                    </label>
+                    <select
+                      value={editPlayerPos}
+                      onChange={(e) => setEditPlayerPos(e.target.value)}
+                      className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2.5 text-sm text-[#F4F7F2]"
+                    >
+                      <option value="GK">GK — Goalkeeper</option>
+                      <option value="CB">CB — Defender</option>
+                      <option value="MF">MF — Midfielder</option>
+                      <option value="FW">FW — Forward</option>
+                    </select>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-[#9AA69B] mb-1.5">
-                  Team Assignment
+                  {editIsNonPlayer ? 'Supporting Team' : 'Team Assignment'}
                 </label>
                 <select
                   value={editPlayerTeamId}
                   onChange={(e) => setEditPlayerTeamId(e.target.value)}
                   className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2 text-xs text-[#F4F7F2]"
                 >
-                  <option value="">Unallocated (Draft Pool)</option>
+                  <option value="">
+                    {editIsNonPlayer ? 'All Teams / Unassigned' : 'Unallocated (Draft Pool)'}
+                  </option>
                   {teams.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name} ({t.short_code})
@@ -1464,6 +1635,11 @@ export function AdminDashboardPage() {
               <PlayerImageUploader
                 value={editPlayerPhotoUrl}
                 onChange={setEditPlayerPhotoUrl}
+                label={
+                  editIsNonPlayer
+                    ? 'Supporter Photo (Optional — Not Required)'
+                    : 'eFootball Player Card Image (Optional)'
+                }
               />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-[#262626]">

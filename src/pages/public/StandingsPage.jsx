@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Activity, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Activity, AlertTriangle, Trophy } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { CircularRing } from '../../components/ui/CircularRing';
@@ -58,12 +58,12 @@ export function StandingsPage() {
   return (
     <div className="space-y-5 animate-slide-up pb-6">
       {/* Top Bar */}
-      <div className="flex items-center justify-between gap-3 pt-1">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
             to="/public"
             aria-label="Back to Overview"
-            className="w-11 h-11 rounded-full bg-[#161616] border border-white/[0.08] flex items-center justify-center text-[#F4F7F2] hover:bg-[#B8F34A] hover:text-[#090909] transition-all"
+            className="w-10 h-10 rounded-xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#F4F7F2] hover:bg-[#1C1C1C] hover:border-[#FFC600] transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -71,26 +71,32 @@ export function StandingsPage() {
             <h1 className="text-lg sm:text-2xl font-black tracking-tight text-[#F4F7F2]">
               League Table &amp; Stats
             </h1>
-            <p className="text-[11px] sm:text-xs text-[#9AA69B]">
-              Top 2 clubs advance to the Super Cup Grand Final
+            <p className="text-[11px] sm:text-xs font-medium text-[#9AA69B]">
+              Top 2 clubs advance to the BetterInU League Grand Final
             </p>
           </div>
         </div>
         <BrandLogo size="sm" />
       </div>
 
-      {/* Solid Bright Lime (#B8F34A) Current #1 Seed Highlight Card */}
+      {/* #1 Seed Highlight Card in Electric Blue, Golden Yellow & Crimson Red */}
       {leader && (
-        <div className="rounded-[28px] bg-[#B8F34A] text-[#090909] p-5 sm:p-6 flex items-center justify-between gap-4 shadow-[0_16px_40px_rgba(184,243,74,0.18)]">
-          <div className="space-y-1">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#090909] text-[#B8F34A] text-[10px] font-black uppercase tracking-wider inline-block">
+        <div className="relative rounded-2xl bg-gradient-to-r from-[#001AFF] via-[#0624C4] to-[#081970] border border-[#3B82F6]/40 text-[#FFFFFF] p-5 sm:p-6 flex items-center justify-between gap-4 shadow-[0_14px_38px_rgba(0,26,255,0.28)] overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-1.5 flex">
+            <span className="flex-1 bg-[#FFC600]" />
+            <span className="flex-1 bg-[#FF1E27]" />
+            <span className="flex-1 bg-[#001AFF]" />
+          </div>
+          <div className="space-y-1.5 pt-1">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#FFC600] text-[#090909] text-[10px] font-black uppercase tracking-wider">
+              <Trophy className="w-3 h-3" />
               #1 League Seed
             </span>
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-[#FFFFFF]">
               {leader.team_name}
             </h2>
-            <p className="text-xs font-bold text-[#090909]/75 tabular-nums">
-              {leader.played} Played • {leader.won}W {leader.drawn}D {leader.lost}L • GD{' '}
+            <p className="text-xs font-bold text-[#DBEAFE] tabular-nums">
+              {leader.played} Played · {leader.won}W {leader.drawn}D {leader.lost}L · GD{' '}
               {leader.goal_difference >= 0 ? `+${leader.goal_difference}` : leader.goal_difference}
             </p>
           </div>
@@ -101,56 +107,82 @@ export function StandingsPage() {
             size={60}
             strokeWidth={5}
             label={`${leader.points}P`}
-            invertColors={true}
+            tone="onBlue"
           />
         </div>
       )}
 
       {/* Main Standings Table */}
-      <div className="rounded-[28px] bg-[#161616] border border-white/[0.08] overflow-hidden shadow-xl">
+      <div className="rounded-2xl bg-[#141414] border border-[#262626] overflow-hidden shadow-sm">
         {isLoading ? (
           <div className="p-8 text-center text-[#9AA69B]">Loading standings...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="border-b border-white/[0.07] bg-[#090909] text-[11px] font-extrabold uppercase tracking-wider text-[#9AA69B]">
-                  <th className="py-4 px-4">Pos</th>
-                  <th className="py-4 px-4">Club</th>
-                  <th className="py-4 px-3 text-center">P</th>
-                  <th className="py-4 px-3 text-center">W</th>
-                  <th className="py-4 px-3 text-center">D</th>
-                  <th className="py-4 px-3 text-center">L</th>
-                  <th className="py-4 px-3 text-center">GF</th>
-                  <th className="py-4 px-3 text-center">GA</th>
-                  <th className="py-4 px-3 text-center">GD</th>
-                  <th className="py-4 px-4 text-right">PTS</th>
+                <tr className="border-b border-[#262626] bg-[#1C1C1C] text-[11px] font-extrabold uppercase tracking-wider text-[#FFC600]">
+                  <th className="py-3.5 px-4">Pos</th>
+                  <th className="py-3.5 px-4">Club</th>
+                  <th className="py-3.5 px-3 text-center">P</th>
+                  <th className="py-3.5 px-3 text-center">W</th>
+                  <th className="py-3.5 px-3 text-center">D</th>
+                  <th className="py-3.5 px-3 text-center">L</th>
+                  <th className="py-3.5 px-3 text-center">GF</th>
+                  <th className="py-3.5 px-3 text-center">GA</th>
+                  <th className="py-3.5 px-3 text-center">GD</th>
+                  <th className="py-3.5 px-4 text-right">PTS</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.06] tabular-nums">
-                {standings.map((row, idx) => (
-                  <tr key={row.team_id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="py-4 px-4 font-black text-[#B8F34A]">#{idx + 1}</td>
-                    <td className="py-4 px-4 font-extrabold text-[#F4F7F2] flex items-center gap-3">
-                      <span className="w-7 h-7 rounded-full bg-[#B8F34A] text-[#090909] text-[10px] font-black flex items-center justify-center shrink-0">
-                        {row.short_code || row.team_name?.slice(0, 3).toUpperCase()}
-                      </span>
-                      <span>{row.team_name}</span>
-                    </td>
-                    <td className="py-4 px-3 text-center text-[#9AA69B]">{row.played}</td>
-                    <td className="py-4 px-3 text-center text-[#9AA69B]">{row.won}</td>
-                    <td className="py-4 px-3 text-center text-[#9AA69B]">{row.drawn}</td>
-                    <td className="py-4 px-3 text-center text-[#9AA69B]">{row.lost}</td>
-                    <td className="py-4 px-3 text-center text-[#9AA69B]">{row.goals_for}</td>
-                    <td className="py-4 px-3 text-center text-[#9AA69B]">{row.goals_against}</td>
-                    <td className="py-4 px-3 text-center font-bold text-[#F4F7F2]">
-                      {row.goal_difference > 0 ? `+${row.goal_difference}` : row.goal_difference}
-                    </td>
-                    <td className="py-4 px-4 text-right font-black text-base text-[#B8F34A]">
-                      {row.points}
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-[#262626] tabular-nums">
+                {standings.map((row, idx) => {
+                  const isFinalist = idx < 2;
+                  return (
+                    <tr
+                      key={row.team_id}
+                      className={`hover:bg-[#1C1C1C] transition-colors ${
+                        isFinalist ? 'bg-[#FFC600]/[0.04]' : ''
+                      }`}
+                    >
+                      <td className="py-4 px-4 font-black text-[#FFC600]">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span>#{idx + 1}</span>
+                          {isFinalist && (
+                            <span
+                              className="w-2 h-2 rounded-full bg-[#FFC600]"
+                              title="Grand Final Qualifier"
+                            />
+                          )}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 font-extrabold text-[#F4F7F2] flex items-center gap-3">
+                        <span
+                          className={`w-7 h-7 rounded-lg text-[10px] font-black flex items-center justify-center shrink-0 ${
+                            idx === 0
+                              ? 'bg-[#FFC600] text-[#090909]'
+                              : idx === 1
+                              ? 'bg-[#001AFF] text-[#FFFFFF]'
+                              : 'bg-[#FF1E27] text-[#FFFFFF]'
+                          }`}
+                        >
+                          {row.short_code || row.team_name?.slice(0, 3).toUpperCase()}
+                        </span>
+                        <span>{row.team_name}</span>
+                      </td>
+                      <td className="py-4 px-3 text-center text-[#9AA69B]">{row.played}</td>
+                      <td className="py-4 px-3 text-center text-[#9AA69B]">{row.won}</td>
+                      <td className="py-4 px-3 text-center text-[#9AA69B]">{row.drawn}</td>
+                      <td className="py-4 px-3 text-center text-[#9AA69B]">{row.lost}</td>
+                      <td className="py-4 px-3 text-center text-[#9AA69B]">{row.goals_for}</td>
+                      <td className="py-4 px-3 text-center text-[#9AA69B]">{row.goals_against}</td>
+                      <td className="py-4 px-3 text-center font-bold text-[#F4F7F2]">
+                        {row.goal_difference > 0 ? `+${row.goal_difference}` : row.goal_difference}
+                      </td>
+                      <td className="py-4 px-4 text-right font-black text-base text-[#FFC600]">
+                        {row.points}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -159,13 +191,13 @@ export function StandingsPage() {
 
       {/* Player Leaderboards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="space-y-4 rounded-[28px] bg-[#161616] border-white/[0.08] p-5">
-          <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
+        <Card className="space-y-4 rounded-2xl bg-[#141414] border-[#262626] p-5">
+          <div className="flex items-center justify-between border-b border-[#262626] pb-3">
             <h2 className="text-sm sm:text-base font-black text-[#F4F7F2] flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#B8F34A]" />
+              <Activity className="w-4 h-4 text-[#FFC600]" />
               Top Scorers &amp; Player Contributions
             </h2>
-            <span className="text-xs text-[#9AA69B]">Tap player for card</span>
+            <span className="text-xs font-medium text-[#9AA69B]">Tap player for card</span>
           </div>
 
           <div className="space-y-2">
@@ -176,17 +208,17 @@ export function StandingsPage() {
                   key={st.player_id}
                   type="button"
                   onClick={() => fullPlayer && setSelectedPlayer(fullPlayer)}
-                  className="w-full p-3 rounded-2xl bg-[#090909] hover:border-[#B8F34A] border border-white/[0.07] flex items-center justify-between text-left transition-all"
+                  className="w-full p-3 rounded-xl bg-[#1C1C1C] hover:bg-[#242424] hover:border-[#001AFF] border border-[#262626] flex items-center justify-between text-left transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-full bg-[#161616] text-[#B8F34A] text-xs font-black flex items-center justify-center tabular-nums">
+                    <span className="w-6 h-6 rounded-full bg-[#001AFF] text-[#FFFFFF] text-xs font-black flex items-center justify-center tabular-nums">
                       {idx + 1}
                     </span>
                     <div>
                       <p className="text-sm font-extrabold text-[#F4F7F2]">
                         #{st.jersey_number} {st.name}
                       </p>
-                      <p className="text-xs text-[#9AA69B]">
+                      <p className="text-xs font-medium text-[#9AA69B]">
                         {st.team_name || 'Unallocated'} • {st.position}
                       </p>
                     </div>
@@ -198,13 +230,13 @@ export function StandingsPage() {
           </div>
         </Card>
 
-        <Card className="space-y-4 rounded-[28px] bg-[#161616] border-white/[0.08] p-5">
-          <div className="flex items-center justify-between border-b border-white/[0.07] pb-3">
+        <Card className="space-y-4 rounded-2xl bg-[#141414] border-[#262626] p-5">
+          <div className="flex items-center justify-between border-b border-[#262626] pb-3">
             <h2 className="text-sm sm:text-base font-black text-[#F4F7F2] flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#B8F34A]" />
+              <AlertTriangle className="w-4 h-4 text-[#FF1E27]" />
               Disciplinary Record
             </h2>
-            <span className="text-xs text-[#9AA69B]">Yellow &amp; Red Cards</span>
+            <span className="text-xs font-medium text-[#9AA69B]">Yellow &amp; Red Cards</span>
           </div>
 
           <div className="space-y-2">
@@ -215,21 +247,21 @@ export function StandingsPage() {
                   key={st.player_id}
                   type="button"
                   onClick={() => fullPlayer && setSelectedPlayer(fullPlayer)}
-                  className="w-full p-3 rounded-2xl bg-[#090909] hover:border-[#B8F34A] border border-white/[0.07] flex items-center justify-between text-left transition-all"
+                  className="w-full p-3 rounded-xl bg-[#1C1C1C] hover:bg-[#242424] hover:border-[#FF1E27]/60 border border-[#262626] flex items-center justify-between text-left transition-all"
                 >
                   <div>
                     <p className="text-sm font-extrabold text-[#F4F7F2]">
                       #{st.jersey_number} {st.name}
                     </p>
-                    <p className="text-xs text-[#9AA69B]">
+                    <p className="text-xs font-medium text-[#9AA69B]">
                       {st.team_name || 'Unallocated'} • {st.position}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-xs tabular-nums">
-                    <span className="px-2.5 py-1 rounded-full bg-[#161616] text-[#B8F34A] border border-white/10 font-bold">
+                    <span className="px-2.5 py-1 rounded-md bg-[#FFC600]/15 text-[#FFC600] border border-[#FFC600]/45 font-bold">
                       {st.yellow_cards || 0} YC
                     </span>
-                    <span className="px-2.5 py-1 rounded-full bg-[#161616] text-[#F4F7F2] border border-white/10 font-bold">
+                    <span className="px-2.5 py-1 rounded-md bg-[#FF1E27]/15 text-[#FF6B72] border border-[#FF1E27]/45 font-bold">
                       {st.red_cards || 0} RC
                     </span>
                   </div>

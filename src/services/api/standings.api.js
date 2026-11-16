@@ -28,22 +28,33 @@ export const standingsApi = {
         .select('*')
         .order('goals', { ascending: false })
         .order('player_name', { ascending: true }),
-      supabase.from('players').select('id, jersey_number'),
+      supabase.from('players').select('id, jersey_number, name'),
     ]);
 
     if (stErr) throw new Error(stErr.message);
 
     const jerseyMap = {};
+    const nonPlayerIds = new Set();
     (playersData || []).forEach((p) => {
       jerseyMap[p.id] = p.jersey_number;
+      if (p.jersey_number === 0 || String(p.name || '').includes(' || ')) {
+        nonPlayerIds.add(p.id);
+      }
     });
 
-    return (statsData || []).map((row) => ({
-      ...row,
-      name: row.player_name || row.name,
-      jersey_number: row.jersey_number ?? jerseyMap[row.player_id] ?? 10,
-    }));
+    return (statsData || [])
+      .filter(
+        (row) =>
+          !nonPlayerIds.has(row.player_id) &&
+          !String(row.player_name || row.name || '').includes(' || ')
+      )
+      .map((row) => ({
+        ...row,
+        name: row.player_name || row.name,
+        jersey_number: row.jersey_number ?? jerseyMap[row.player_id] ?? 10,
+      }));
   },
 };
 
 export default standingsApi;
+

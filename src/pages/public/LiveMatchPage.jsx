@@ -109,7 +109,7 @@ export function LiveMatchPage() {
 
   if (loadingMatches) {
     return (
-      <Card className="p-8 text-center text-sm text-[#9AA69B] rounded-[28px]">
+      <Card className="p-8 text-center text-sm text-[#9AA69B] rounded-2xl">
         Connecting to live match center...
       </Card>
     );
@@ -117,7 +117,7 @@ export function LiveMatchPage() {
 
   if (!activeMatch) {
     return (
-      <Card className="p-8 text-center text-sm text-[#9AA69B] rounded-[28px]">
+      <Card className="p-8 text-center text-sm text-[#9AA69B] rounded-2xl">
         No tournament matches scheduled yet.
       </Card>
     );
@@ -131,28 +131,29 @@ export function LiveMatchPage() {
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-slide-up pb-6">
-      {/* Screen 2 Center Design: Visual Stage + Rounded [32px] Telemetry Sheet */}
-      <div className="rounded-[32px] bg-[#121212] border border-white/[0.08] overflow-hidden shadow-2xl">
-        {/* Upper Arena Visual Stage with Circular Glass Controls */}
-        <div
-          className="relative p-4 sm:p-6 pb-8 overflow-hidden"
-          style={{
-            background:
-              'radial-gradient(circle at 50% 25%, rgba(184,243,74,0.16) 0%, rgba(9,9,9,0.96) 72%)',
-          }}
-        >
-          {/* Top Circular Glass Navigation Buttons (Matches Screen 2 Top Bar) */}
-          <div className="flex items-center justify-between gap-2 mb-5">
+      {/* Main Scoreboard Showcase Card */}
+      <div className="rounded-2xl bg-[#141414] border border-[#262626] overflow-hidden shadow-md">
+        {/* Upper Electric Blue Arena Stage */}
+        <div className="relative p-4 sm:p-6 pb-8 bg-gradient-to-r from-[#001AFF] via-[#0624C4] to-[#081970] text-[#FFFFFF]">
+          {/* Top Tri-Color Championship Strip */}
+          <div className="absolute top-0 inset-x-0 h-1.5 flex">
+            <span className="flex-1 bg-[#FFC600]" />
+            <span className="flex-1 bg-[#FF1E27]" />
+            <span className="flex-1 bg-[#001AFF]" />
+          </div>
+
+          {/* Top Navigation & Match Switcher */}
+          <div className="flex items-center justify-between gap-2 mb-5 pt-1">
             <Link
               to="/public"
               aria-label="Back to overview"
-              className="w-11 h-11 rounded-full bg-[#1C1C1C]/90 backdrop-blur-md border border-white/10 flex items-center justify-center text-[#F4F7F2] hover:bg-[#B8F34A] hover:text-[#090909] transition-all"
+              className="w-10 h-10 rounded-xl bg-white/15 hover:bg-[#FFC600] text-[#FFFFFF] hover:text-[#090909] border border-white/20 flex items-center justify-center transition-all shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
 
-            {/* Match Switcher Pills */}
-            <div className="flex items-center gap-1.5 bg-[#090909]/90 p-1 rounded-full border border-white/10 overflow-x-auto no-scrollbar">
+            {/* Match Switcher Tabs */}
+            <div className="flex items-center gap-1.5 bg-[#041466]/90 p-1 rounded-xl border border-white/15 overflow-x-auto no-scrollbar">
               {matches.map((m) => {
                 const selected = m.id === activeMatch.id;
                 return (
@@ -160,10 +161,10 @@ export function LiveMatchPage() {
                     key={m.id}
                     type="button"
                     onClick={() => setSelectedMatchId(m.id)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-extrabold transition-all whitespace-nowrap ${
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all whitespace-nowrap ${
                       selected
-                        ? 'bg-[#B8F34A] text-[#090909] shadow'
-                        : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                        ? 'bg-[#FFC600] text-[#090909] shadow-2xs'
+                        : 'text-[#DBEAFE] hover:text-[#FFFFFF]'
                     }`}
                   >
                     M#{m.match_number}: {m.home_team?.short_code} v {m.away_team?.short_code}
@@ -173,59 +174,56 @@ export function LiveMatchPage() {
             </div>
 
             <div
-              className="w-11 h-11 rounded-full bg-[#1C1C1C]/90 backdrop-blur-md border border-white/10 flex items-center justify-center text-[#B8F34A]"
+              className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-[#FFC600] shrink-0"
               title={isLive ? 'Live Match Active' : 'Match Telemetry Ready'}
             >
-              <Radio className={`w-4 h-4 ${isLive ? 'animate-pulse text-[#FF414D]' : ''}`} />
+              <Radio className={`w-4 h-4 ${isLive ? 'animate-pulse text-[#FFC600]' : ''}`} />
             </div>
           </div>
 
-          {/* Center Matchup Showcase Stage */}
-          <div className="grid grid-cols-3 items-center text-center gap-3 py-3 sm:py-5">
+          {/* Center Matchup Showcase */}
+          <div className="grid grid-cols-3 items-center text-center gap-3 py-2 sm:py-4">
             {/* Home Club */}
             <div className="flex flex-col items-center gap-2 min-w-0">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[24px] bg-[#090909] border-2 border-[#B8F34A] flex items-center justify-center font-black text-base sm:text-xl text-[#B8F34A] shadow-[0_0_30px_rgba(184,243,74,0.2)]">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#141414] border-2 border-[#FFC600] flex items-center justify-center font-black text-base sm:text-xl text-[#FFC600] shadow-md">
                 {activeMatch.home_team?.short_code}
               </div>
-              <h2 className="text-xs sm:text-base font-black text-[#F4F7F2] truncate w-full">
+              <h2 className="text-xs sm:text-base font-black text-[#FFFFFF] truncate w-full">
                 {activeMatch.home_team?.name}
               </h2>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#9AA69B]">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#DBEAFE]">
                 Home Club
               </span>
             </div>
 
             {/* Center VS & Venue Badge */}
             <div className="flex flex-col items-center justify-center gap-2">
-              <div className="px-3.5 py-1.5 rounded-full bg-[#161616] border border-[#B8F34A]/50 text-xs font-black tracking-widest text-[#B8F34A] uppercase">
+              <div className="px-3.5 py-1 rounded-full bg-[#FF1E27] text-[#FFFFFF] border border-[#FFC600] text-xs font-black tracking-widest uppercase shadow-xs">
                 VS
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#161616] border border-white/10 text-[10px] font-extrabold text-[#B8F34A]">
-                <MapPin className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 border border-white/20 text-[10px] font-extrabold text-[#FFFFFF]">
+                <MapPin className="w-3 h-3 text-[#FFC600]" />
                 {activeMatch.venue}
               </span>
             </div>
 
             {/* Away Club */}
             <div className="flex flex-col items-center gap-2 min-w-0">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[24px] bg-[#161616] border-2 border-white/20 flex items-center justify-center font-black text-base sm:text-xl text-[#F4F7F2] shadow-xl">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#141414] border-2 border-[#FF1E27] flex items-center justify-center font-black text-base sm:text-xl text-[#FF6B72] shadow-md">
                 {activeMatch.away_team?.short_code}
               </div>
-              <h2 className="text-xs sm:text-base font-black text-[#F4F7F2] truncate w-full">
+              <h2 className="text-xs sm:text-base font-black text-[#FFFFFF] truncate w-full">
                 {activeMatch.away_team?.name}
               </h2>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#9AA69B]">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#DBEAFE]">
                 Away Club
               </span>
             </div>
           </div>
         </div>
 
-        {/* Lower Rounded [32px] Telemetry Sheet (Matches Screen 2 Bottom Sheet) */}
-        <div className="relative -mt-4 rounded-t-[32px] bg-[#161616] border-t border-white/[0.08] p-5 sm:p-6 space-y-5">
-          {/* Top Handle Indicator */}
-          <div className="w-9 h-1 rounded-full bg-white/35 mx-auto" />
-
+        {/* Lower Sleek Dark Telemetry Sheet */}
+        <div className="relative -mt-4 rounded-t-3xl bg-[#141414] border-t border-[#262626] p-5 sm:p-6 space-y-5">
           {/* 3-Column Telemetry Readout: Match # | Giant Score | Period */}
           <div className="grid grid-cols-3 items-center text-center gap-2 py-1">
             <div className="text-left sm:text-center">
@@ -242,7 +240,15 @@ export function LiveMatchPage() {
               <div className="text-4xl sm:text-6xl font-black text-[#F4F7F2] tabular-nums tracking-tight whitespace-nowrap">
                 {activeMatch.home_score ?? 0}:{activeMatch.away_score ?? 0}
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#B8F34A] mt-1">
+              <span
+                className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md mt-1.5 ${
+                  isLive
+                    ? 'bg-[#FF1E27]/20 text-[#FF6B72] border border-[#FF1E27]/50'
+                    : activeMatch.status === 'completed'
+                    ? 'bg-emerald-500/15 text-[#4ADE80] border border-emerald-500/35'
+                    : 'bg-[#FFC600]/15 text-[#FFC600] border border-[#FFC600]/40'
+                }`}
+              >
                 {isLive
                   ? 'LIVE IN PLAY'
                   : activeMatch.status === 'completed'
@@ -255,42 +261,42 @@ export function LiveMatchPage() {
               <span className="text-[11px] font-semibold text-[#9AA69B] block">
                 Period
               </span>
-              <span className="text-base sm:text-xl font-extrabold text-[#F4F7F2] tabular-nums">
+              <span className="text-base sm:text-xl font-extrabold text-[#FFC600] tabular-nums">
                 {activeMatch.current_period || 1}/2
               </span>
             </div>
           </div>
 
-          {/* Solid Bright Lime (#B8F34A) Bottom Action Banner (Matches Screen 2 "Next" Card) */}
+          {/* Yellow & Blue Highlight Action Banner */}
           <Link
             to="/public/teams"
-            className="group block rounded-[24px] bg-[#B8F34A] text-[#090909] p-3.5 sm:p-4 transition-all hover:brightness-105 shadow-[0_14px_34px_rgba(184,243,74,0.22)]"
+            className="group block rounded-2xl bg-[#1C1C1C] hover:bg-[#222222] border border-[#FFC600]/45 text-[#F4F7F2] p-3.5 sm:p-4 transition-all"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3.5 min-w-0">
                 <BrandLogo size="sm" />
                 <div className="min-w-0">
-                  <span className="text-[11px] font-bold text-[#090909]/70 block">
+                  <span className="text-[11px] font-bold text-[#FFC600] block">
                     Live Stage Presentation
                   </span>
-                  <h3 className="text-sm sm:text-base font-black text-[#090909] truncate">
+                  <h3 className="text-sm sm:text-base font-black text-[#F4F7F2] truncate">
                     Live Team Draw &amp; Player Cards
                   </h3>
                 </div>
               </div>
 
-              <div className="w-11 h-11 rounded-full bg-[#090909] text-[#B8F34A] flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:translate-x-1">
-                <ArrowRight className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-[#001AFF] text-[#FFFFFF] flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:translate-x-1">
+                <ArrowRight className="w-5 h-5 text-[#FFC600]" />
               </div>
             </div>
           </Link>
         </div>
       </div>
 
-      {/* Conditional Content: Only reveal lineups & live events once the match starts */}
+      {/* Conditional Content: Pre-Match vs Active/Completed Match */}
       {!hasMatchStarted ? (
-        <div className="rounded-[28px] bg-[#161616] border border-white/[0.07] p-5 sm:p-6 text-center space-y-3 animate-card-pop">
-          <div className="w-11 h-11 rounded-full bg-[#090909] border border-[#B8F34A]/40 flex items-center justify-center mx-auto text-[#B8F34A]">
+        <div className="rounded-2xl bg-[#141414] border border-[#262626] p-6 text-center space-y-3 animate-card-pop shadow-sm">
+          <div className="w-11 h-11 rounded-xl bg-[#001AFF]/20 border border-[#3B82F6]/45 flex items-center justify-center mx-auto text-[#FFC600]">
             <Lock className="w-4 h-4" />
           </div>
           <div className="space-y-1 max-w-md mx-auto">
@@ -305,14 +311,14 @@ export function LiveMatchPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Chronological Event Timeline */}
-          <Card className="lg:col-span-5 space-y-3 rounded-[28px] bg-[#161616]">
-            <h3 className="text-sm font-bold text-[#F4F7F2] flex items-center gap-2 border-b border-[#262626] pb-2.5">
-              <Activity className="w-4 h-4 text-[#B8F34A]" />
+          <Card className="lg:col-span-5 space-y-3 rounded-2xl bg-[#141414] border-[#262626]">
+            <h3 className="text-sm font-extrabold text-[#F4F7F2] flex items-center gap-2 border-b border-[#262626] pb-2.5">
+              <Activity className="w-4 h-4 text-[#FFC600]" />
               Live Match Timeline ({events.length})
             </h3>
 
             {events.length === 0 ? (
-              <p className="text-xs text-[#9AA69B] py-8 text-center border border-dashed border-[#303030] rounded-2xl">
+              <p className="text-xs text-[#9AA69B] py-8 text-center bg-[#1C1C1C] border border-dashed border-[#303030] rounded-xl">
                 Kickoff underway — awaiting first match event.
               </p>
             ) : (
@@ -321,13 +327,13 @@ export function LiveMatchPage() {
                   <div
                     key={ev.id}
                     style={{ animationDelay: `${idx * 45}ms` }}
-                    className="animate-card-pop flex items-center justify-between gap-2 p-2.5 rounded-xl bg-[#090909] border border-[#262626] text-xs"
+                    className="animate-card-pop flex items-center justify-between gap-2 p-2.5 rounded-xl bg-[#1C1C1C] border border-[#262626] text-xs"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="px-2 py-0.5 rounded-md bg-[#161616] font-black text-[#B8F34A] tabular-nums shrink-0">
+                      <span className="px-2 py-0.5 rounded-md bg-[#001AFF]/25 border border-[#3B82F6]/40 font-black text-[#FFC600] tabular-nums shrink-0">
                         {ev.minute}&apos;
                       </span>
-                      <span className="font-semibold text-[#F4F7F2] shrink-0">
+                      <span className="font-bold text-[#F4F7F2] shrink-0">
                         {ev.event_type === 'GOAL' ? '⚽ Goal' : ev.event_type.replace('_', ' ')}
                       </span>
                       {ev.player && (
@@ -337,32 +343,34 @@ export function LiveMatchPage() {
                             const fullPlayer = players.find((p) => p.id === ev.player_id);
                             if (fullPlayer) setSelectedPlayer(fullPlayer);
                           }}
-                          className="font-bold text-[#B8F34A] hover:underline truncate"
+                          className="font-bold text-[#FFC600] hover:underline truncate"
                         >
                           #{ev.player.jersey_number} {ev.player.name}
                         </button>
                       )}
                     </div>
-                    <Badge variant="neutral">{ev.team?.short_code || 'TM'}</Badge>
+                    <Badge variant="brand">{ev.team?.short_code || 'TM'}</Badge>
                   </div>
                 ))}
               </div>
             )}
           </Card>
 
-          {/* Official Matchday Lineup Cards (Visible once match starts) */}
-          <Card className="lg:col-span-7 space-y-4 rounded-[28px] bg-[#161616]">
+          {/* Official Matchday Lineup Cards */}
+          <Card className="lg:col-span-7 space-y-4 rounded-2xl bg-[#141414] border-[#262626]">
             <div className="flex items-center justify-between border-b border-[#262626] pb-2.5">
-              <h3 className="text-sm font-bold text-[#F4F7F2] flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#B8F34A]" />
+              <h3 className="text-sm font-extrabold text-[#F4F7F2] flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#FFC600]" />
                 Official Matchday Squads
               </h3>
-              <span className="text-[11px] text-[#9AA69B]">Tap card for player stats</span>
+              <span className="text-[11px] font-medium text-[#9AA69B]">
+                Tap card for player stats
+              </span>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-[#B8F34A]">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-[#FFC600]">
                   {activeMatch.home_team?.name} ({homeSquad.length})
                 </span>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -379,7 +387,7 @@ export function LiveMatchPage() {
               </div>
 
               <div className="space-y-2 pt-3 border-t border-[#262626]">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-[#F4F7F2]">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-[#FF6B72]">
                   {activeMatch.away_team?.name} ({awaySquad.length})
                 </span>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">

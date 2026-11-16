@@ -9,9 +9,9 @@ import {
   X,
   Activity,
   Radio,
+  Trophy,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { CircularRing } from '../../components/ui/CircularRing';
 import { BrandLogo } from '../../components/shared/BrandLogo';
@@ -55,13 +55,13 @@ export function FixturesPage() {
 
   return (
     <div className="space-y-5 animate-slide-up pb-6">
-      {/* Screen 3 Top Bar: Circular Back Button + Title + Official Logo */}
-      <div className="flex items-center justify-between gap-3 pt-1">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
             to="/public"
             aria-label="Back to Overview"
-            className="w-11 h-11 rounded-full bg-[#161616] border border-white/[0.08] flex items-center justify-center text-[#F4F7F2] hover:bg-[#B8F34A] hover:text-[#090909] transition-all"
+            className="w-10 h-10 rounded-xl bg-[#141414] border border-[#262626] flex items-center justify-center text-[#F4F7F2] hover:bg-[#1C1C1C] hover:border-[#FFC600] transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -69,7 +69,7 @@ export function FixturesPage() {
             <h1 className="text-lg sm:text-2xl font-black tracking-tight text-[#F4F7F2]">
               Official Match Fixtures
             </h1>
-            <p className="text-[11px] sm:text-xs text-[#9AA69B]">
+            <p className="text-[11px] sm:text-xs font-medium text-[#9AA69B]">
               Round-Robin League Stage &amp; Grand Final
             </p>
           </div>
@@ -77,9 +77,9 @@ export function FixturesPage() {
         <BrandLogo size="sm" />
       </div>
 
-      {/* Screen 3 Telemetry Stat Bar + Circular Action Tile */}
+      {/* Summary Stat Strip + Live Match Center Shortcut */}
       <div className="flex items-stretch gap-3">
-        <div className="flex-1 rounded-[24px] bg-[#161616] border border-white/[0.07] px-4 py-3.5 grid grid-cols-2 gap-3 items-center">
+        <div className="flex-1 rounded-2xl bg-[#141414] border border-[#262626] px-4 py-3.5 grid grid-cols-2 gap-3 items-center shadow-sm">
           <div>
             <span className="text-[11px] text-[#9AA69B] font-semibold block">
               League Stage
@@ -88,11 +88,11 @@ export function FixturesPage() {
               {matches.length} Matches
             </span>
           </div>
-          <div className="border-l border-white/[0.08] pl-3">
+          <div className="border-l border-[#262626] pl-3">
             <span className="text-[11px] text-[#9AA69B] font-semibold block">
-              Format
+              Competition Format
             </span>
-            <span className="text-base sm:text-xl font-black text-[#B8F34A] tabular-nums">
+            <span className="text-base sm:text-xl font-black text-[#FFC600] tabular-nums">
               5v5 + Final
             </span>
           </div>
@@ -101,15 +101,15 @@ export function FixturesPage() {
         <Link
           to="/public/live"
           aria-label="Live Match Center"
-          className="w-16 rounded-[24px] bg-[#161616] border border-white/[0.07] hover:border-[#B8F34A] flex flex-col items-center justify-center gap-1 text-[#F4F7F2] hover:text-[#B8F34A] transition-all shrink-0"
+          className="w-20 rounded-2xl bg-[#FF1E27] hover:bg-[#E0151E] flex flex-col items-center justify-center gap-1 text-[#FFFFFF] transition-all shrink-0 shadow-[0_6px_20px_rgba(255,30,39,0.3)]"
         >
-          <Radio className="w-5 h-5 text-[#B8F34A] animate-pulse" />
+          <Radio className="w-5 h-5 text-[#FFC600] animate-pulse" />
           <span className="text-[9px] font-black uppercase tracking-wider">LIVE</span>
         </Link>
       </div>
 
-      {/* Segmented Pill Filter Bar */}
-      <div className="flex items-center gap-1.5 bg-[#161616] p-1.5 rounded-full border border-white/[0.06] overflow-x-auto no-scrollbar">
+      {/* Segmented Filter Bar */}
+      <div className="flex items-center gap-1.5 bg-[#141414] p-1.5 rounded-xl border border-[#262626] overflow-x-auto no-scrollbar">
         {['ALL', 'SCHEDULED', 'LIVE', 'COMPLETED'].map((st) => {
           const active = statusFilter === st;
           return (
@@ -117,10 +117,10 @@ export function FixturesPage() {
               key={st}
               type="button"
               onClick={() => setStatusFilter(st)}
-              className={`px-4 py-2 rounded-full text-xs font-extrabold transition-all whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg text-xs font-extrabold transition-all whitespace-nowrap ${
                 active
-                  ? 'bg-[#F4F7F2] text-[#090909] shadow'
-                  : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                  ? 'bg-[#001AFF] text-[#FFFFFF] shadow-xs border border-[#3B82F6]/40'
+                  : 'text-[#9AA69B] hover:text-[#F4F7F2] hover:bg-[#1C1C1C]'
               }`}
             >
               {st === 'ALL' ? 'All Fixtures' : st}
@@ -129,173 +129,175 @@ export function FixturesPage() {
         })}
       </div>
 
-      {/* Alternating Lime (#B8F34A) & Charcoal (#161616) [28px] Fixture Stack */}
+      {/* Match Fixture Cards */}
       {isLoading ? (
-        <Card className="p-8 text-center text-[#9AA69B] rounded-[28px]">
+        <Card className="p-8 text-center text-[#9AA69B] rounded-2xl">
           Loading official fixtures...
         </Card>
       ) : filteredMatches.length === 0 ? (
-        <Card className="p-8 text-center text-sm text-[#9AA69B] rounded-[28px]">
+        <Card className="p-8 text-center text-sm text-[#9AA69B] rounded-2xl">
           No fixtures match the selected filter ({statusFilter}).
         </Card>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {filteredMatches.map((match, idx) => {
             const matchEvents = allEvents.filter((e) => e.match_id === match.id);
             const isLive = match.status === 'live' || match.status === 'half_time';
-            const isLimeCard = idx % 2 === 0;
+            const cardPalette = [
+              {
+                topStrip: 'bg-[#001AFF]',
+                card: 'bg-[#141414] border-[#001AFF]/45 hover:border-[#001AFF]',
+                badge: 'bg-[#001AFF] text-[#FFFFFF]',
+              },
+              {
+                topStrip: 'bg-[#FFC600]',
+                card: 'bg-[#141414] border-[#FFC600]/45 hover:border-[#FFC600]',
+                badge: 'bg-[#FFC600] text-[#090909]',
+              },
+              {
+                topStrip: 'bg-[#FF1E27]',
+                card: 'bg-[#141414] border-[#FF1E27]/45 hover:border-[#FF1E27]',
+                badge: 'bg-[#FF1E27] text-[#FFFFFF]',
+              },
+            ][idx % 3];
 
             return (
-              <React.Fragment key={match.id}>
-                <div className="w-7 h-1 rounded-full bg-white/30 mx-auto" />
+              <div
+                key={match.id}
+                style={{ animationDelay: `${idx * 70}ms` }}
+                onClick={() => setSelectedMatch(match)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedMatch(match);
+                  }
+                }}
+                className={`relative overflow-hidden animate-card-pop rounded-2xl p-5 sm:p-6 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 text-[#F4F7F2] border shadow-sm ${cardPalette.card}`}
+              >
+                <div className={`h-1 w-full absolute top-0 left-0 right-0 ${cardPalette.topStrip}`} />
+                <div className="flex items-center justify-between gap-4 pt-0.5">
+                  <div className="space-y-2 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider tabular-nums ${cardPalette.badge}`}>
+                        Match #{match.match_number}
+                      </span>
 
-                <div
-                  style={{ animationDelay: `${idx * 70}ms` }}
-                  onClick={() => setSelectedMatch(match)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedMatch(match);
-                    }
-                  }}
-                  className={`animate-card-pop rounded-[28px] p-5 sm:p-6 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 ${
-                    isLimeCard
-                      ? 'bg-[#B8F34A] text-[#090909] shadow-[0_16px_40px_rgba(184,243,74,0.18)]'
-                      : 'bg-[#161616] text-[#F4F7F2] border border-white/[0.08] hover:border-[#B8F34A]/60 shadow-xl'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="space-y-2.5 min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider tabular-nums ${
-                            isLimeCard
-                              ? 'bg-[#090909] text-[#B8F34A]'
-                              : 'bg-[#090909] text-[#B8F34A] border border-white/10'
-                          }`}
-                        >
-                          Match #{match.match_number}
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-[#9AA69B]">
+                        <MapPin className="w-3.5 h-3.5 text-[#FFC600] shrink-0" />
+                        <span>{match.venue}</span>
+                      </span>
+
+                      {isLive && (
+                        <span className="px-2.5 py-0.5 rounded-md bg-[#FF1E27] text-[#FFFFFF] text-[10px] font-black uppercase tracking-wider animate-pulse">
+                          LIVE NOW
                         </span>
+                      )}
 
-                        <span
-                          className={`inline-flex items-center gap-1 text-xs font-bold ${
-                            isLimeCard ? 'text-[#090909]/75' : 'text-[#9AA69B]'
-                          }`}
-                        >
-                          <MapPin className="w-3.5 h-3.5 shrink-0" />
-                          <span>{match.venue}</span>
+                      {match.status === 'completed' && (
+                        <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/15 text-[#4ADE80] border border-emerald-500/35 text-[10px] font-black uppercase tracking-wider">
+                          FULL TIME
                         </span>
-
-                        {isLive && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-[#090909] text-[#B8F34A] text-[10px] font-black uppercase tracking-wider animate-pulse">
-                            LIVE NOW
-                          </span>
-                        )}
-                      </div>
-
-                      <h2 className="text-lg sm:text-2xl font-black tracking-tight leading-snug">
-                        {match.home_team?.name || 'Home Team'}{' '}
-                        <span
-                          className={
-                            isLimeCard ? 'text-[#090909]/55 font-extrabold' : 'text-[#B8F34A]'
-                          }
-                        >
-                          {match.status === 'scheduled'
-                            ? 'vs'
-                            : `${match.home_score} : ${match.away_score}`}
-                        </span>{' '}
-                        {match.away_team?.name || 'Away Team'}
-                      </h2>
-
-                      <div
-                        className={`flex flex-wrap items-center gap-3 text-xs font-semibold ${
-                          isLimeCard ? 'text-[#090909]/75' : 'text-[#9AA69B]'
-                        }`}
-                      >
-                        <span>
-                          {match.home_team?.short_code} vs {match.away_team?.short_code} • 5v5 Official Fixture
-                        </span>
-                        {matchEvents.length > 0 && (
-                          <span>• {matchEvents.length} events</span>
-                        )}
-                      </div>
+                      )}
                     </div>
 
-                    <CircularRing
-                      value={
-                        match.status === 'completed'
-                          ? 3
-                          : isLive
-                          ? 2
-                          : idx + 1
-                      }
-                      max={3}
-                      size={58}
-                      strokeWidth={5}
-                      label={String(match.match_number)}
-                      invertColors={isLimeCard}
-                    />
+                    <h2 className="text-lg sm:text-2xl font-black tracking-tight text-[#F4F7F2] leading-snug">
+                      {match.home_team?.name || 'Home Team'}{' '}
+                      <span className="px-2.5 py-0.5 mx-1 rounded-lg bg-[#202020] border border-[#303030] text-[#FFC600] font-black tabular-nums">
+                        {match.status === 'scheduled'
+                          ? 'vs'
+                          : `${match.home_score} : ${match.away_score}`}
+                      </span>{' '}
+                      {match.away_team?.name || 'Away Team'}
+                    </h2>
+
+                    <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-[#9AA69B]">
+                      <span>
+                        {match.home_team?.short_code} vs {match.away_team?.short_code} · 5v5 Official Fixture
+                      </span>
+                      {matchEvents.length > 0 && (
+                        <span className="text-[#FFC600]">· {matchEvents.length} events</span>
+                      )}
+                    </div>
                   </div>
+
+                  <CircularRing
+                    value={
+                      match.status === 'completed'
+                        ? 3
+                        : isLive
+                        ? 2
+                        : idx + 1
+                    }
+                    max={3}
+                    size={56}
+                    strokeWidth={5}
+                    label={String(match.match_number)}
+                  />
                 </div>
-              </React.Fragment>
+              </div>
             );
           })}
 
-          <div className="w-7 h-1 rounded-full bg-white/30 mx-auto" />
-
-          <div className="rounded-[28px] bg-[#161616] border-2 border-[#B8F34A] p-5 sm:p-6 shadow-[0_16px_40px_rgba(184,243,74,0.12)]">
-            <div className="flex items-center justify-between gap-4">
+          {/* Championship Grand Final Highlight Card */}
+          <div className="relative rounded-2xl bg-gradient-to-r from-[#001AFF] via-[#0624C4] to-[#081970] border border-[#3B82F6]/40 text-[#FFFFFF] p-5 sm:p-6 shadow-[0_14px_38px_rgba(0,26,255,0.28)] overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-1.5 flex">
+              <span className="flex-1 bg-[#FFC600]" />
+              <span className="flex-1 bg-[#FF1E27]" />
+              <span className="flex-1 bg-[#001AFF]" />
+            </div>
+            <div className="flex items-center justify-between gap-4 pt-1">
               <div className="space-y-2 min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#B8F34A] text-[#090909] text-[10px] font-black uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#FFC600] text-[#090909] text-[10px] font-black uppercase tracking-wider">
+                    <Trophy className="w-3 h-3" />
                     Championship Final
                   </span>
-                  <span className="text-xs font-bold text-[#9AA69B]">
+                  <span className="text-xs font-bold text-[#DBEAFE]">
                     Top 2 League Seeds
                   </span>
                 </div>
 
-                <h3 className="text-lg sm:text-2xl font-black text-[#F4F7F2] tracking-tight">
+                <h3 className="text-lg sm:text-2xl font-black text-[#FFFFFF] tracking-tight">
                   {topTwoTeams.first?.team_name || '1st Place Seed'}{' '}
-                  <span className="text-[#B8F34A]">vs</span>{' '}
+                  <span className="text-[#FFC600] px-1">vs</span>{' '}
                   {topTwoTeams.second?.team_name || '2nd Place Seed'}
                 </h3>
 
-                <p className="text-xs font-semibold text-[#9AA69B]">
-                  Super Cup Grand Final • Main Stadium Pitch
+                <p className="text-xs font-semibold text-[#DBEAFE]">
+                  BetterInU Football League Grand Final · Main Stadium Pitch
                 </p>
               </div>
 
               <CircularRing
                 value={3}
                 max={3}
-                size={58}
+                size={56}
                 strokeWidth={5}
                 label="FIN"
-                invertColors={false}
+                tone="onBlue"
               />
             </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Track-Style Pill CTA Bar (Matches Screen 3 Bottom CTA) */}
+      {/* Bottom CTA Bar */}
       <div className="pt-2">
         <Link
           to="/public/live"
-          className="group w-full rounded-full bg-[#090909] border border-[#B8F34A] p-1.5 flex items-center justify-between hover:bg-[#141414] transition-all shadow-[0_10px_30px_rgba(184,243,74,0.15)]"
+          className="group w-full rounded-2xl bg-[#141414] border border-[#001AFF]/50 hover:border-[#FFC600] p-2 flex items-center justify-between hover:bg-[#1C1C1C] transition-all shadow-sm"
         >
-          <span className="w-11 h-11 rounded-full bg-[#B8F34A] text-[#090909] flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:translate-x-1">
-            <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+          <span className="w-10 h-10 rounded-xl bg-[#001AFF] text-[#FFFFFF] flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:translate-x-1">
+            <ArrowRight className="w-5 h-5 stroke-[2.5] text-[#FFC600]" />
           </span>
 
-          <span className="text-sm font-extrabold text-[#F4F7F2] tracking-tight">
+          <span className="text-sm font-extrabold text-[#F4F7F2] group-hover:text-[#FFC600] tracking-tight">
             Open Live Match Center
           </span>
 
-          <span className="flex items-center pr-4 text-[#B8F34A]">
+          <span className="flex items-center pr-3 text-[#FFC600]">
             <ChevronRight className="w-4 h-4 -mr-2 animate-chevron-1" />
             <ChevronRight className="w-4 h-4 -mr-2 animate-chevron-2" />
             <ChevronRight className="w-4 h-4 animate-chevron-3" />
@@ -306,21 +308,21 @@ export function FixturesPage() {
       {/* Match Details Modal */}
       {selectedMatch && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
           onClick={() => setSelectedMatch(null)}
         >
           <Card
-            className="w-full max-w-lg space-y-4 bg-[#141414] border-[#262626] rounded-[28px] p-5"
+            className="w-full max-w-lg space-y-4 bg-[#141414] border-[#303030] rounded-2xl p-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-[#262626] pb-3">
               <div className="flex items-center gap-2.5">
                 <BrandLogo size="xs" />
                 <div>
-                  <span className="text-[11px] font-bold text-[#B8F34A] block">
+                  <span className="text-[11px] font-bold text-[#FFC600] block">
                     MATCH #{selectedMatch.match_number} • {selectedMatch.venue}
                   </span>
-                  <h3 className="text-base font-bold text-[#F4F7F2]">
+                  <h3 className="text-base font-extrabold text-[#F4F7F2]">
                     {selectedMatch.home_team?.name} vs {selectedMatch.away_team?.name}
                   </h3>
                 </div>
@@ -334,23 +336,23 @@ export function FixturesPage() {
               </button>
             </div>
 
-            <div className="py-5 text-center bg-[#090909] rounded-2xl border border-[#262626]">
+            <div className="py-5 text-center bg-[#1C1C1C] rounded-xl border border-[#303030]">
               <p className="text-3xl font-black text-[#F4F7F2] tabular-nums">
                 {selectedMatch.status === 'scheduled'
                   ? 'VS'
                   : `${selectedMatch.home_score} : ${selectedMatch.away_score}`}
               </p>
-              <span className="text-xs text-[#B8F34A] font-bold uppercase mt-1 block">
+              <span className="text-xs text-[#FFC600] font-extrabold uppercase mt-1 block">
                 {selectedMatch.status}
               </span>
             </div>
 
             <div className="space-y-2 max-h-60 overflow-y-auto">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#9AA69B] flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-[#B8F34A]" /> Match Events
+                <Activity className="w-3.5 h-3.5 text-[#FFC600]" /> Match Events
               </h4>
               {allEvents.filter((e) => e.match_id === selectedMatch.id).length === 0 ? (
-                <p className="text-xs text-[#9AA69B] py-4 text-center">
+                <p className="text-xs text-[#9AA69B] py-4 text-center bg-[#1C1C1C] rounded-xl border border-[#262626]">
                   No events recorded for this fixture yet.
                 </p>
               ) : (
@@ -359,15 +361,17 @@ export function FixturesPage() {
                   .map((ev) => (
                     <div
                       key={ev.id}
-                      className="p-2.5 rounded-xl bg-[#090909] border border-[#262626] flex items-center justify-between text-xs"
+                      className="p-2.5 rounded-xl bg-[#1C1C1C] border border-[#262626] flex items-center justify-between text-xs"
                     >
-                      <span>
-                        <strong className="text-[#B8F34A] mr-2 tabular-nums">
+                      <span className="text-[#F4F7F2] font-medium">
+                        <strong className="text-[#FFC600] mr-2 tabular-nums">
                           {ev.minute}&apos;
                         </strong>
                         {ev.event_type.replace('_', ' ')}
                       </span>
-                      <span className="text-[#9AA69B]">{ev.team?.name || ''}</span>
+                      <span className="text-[#9AA69B] font-semibold">
+                        {ev.team?.name || ''}
+                      </span>
                     </div>
                   ))
               )}
@@ -376,7 +380,7 @@ export function FixturesPage() {
             <div className="flex items-center justify-between pt-2 border-t border-[#262626]">
               <Link
                 to="/public/live"
-                className="text-xs font-bold text-[#B8F34A] hover:underline inline-flex items-center gap-1"
+                className="text-xs font-bold text-[#FFC600] hover:underline inline-flex items-center gap-1"
               >
                 <span>Open in Live Match Center</span>
                 <ArrowRight className="w-3.5 h-3.5" />

@@ -2,13 +2,22 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 /**
- * Standard Card component adhering to DESIGN_SYSTEM.md §10.1
+ * Standardized Dark Sports Card Component — BetterInU Football League Design System
  */
-export function Card({ children, className = '', ...props }) {
+export function Card({ children, variant = 'default', className = '', ...props }) {
+  const surfaceVariants = {
+    default: 'bg-[#141414] border-[#262626] text-[#F4F7F2]',
+    secondary: 'bg-[#1C1C1C] border-[#303030] text-[#F4F7F2]',
+    yellow: 'bg-[#141414] border-[#FFC600]/45 text-[#F4F7F2]',
+    blue: 'bg-[#141414] border-[#001AFF]/55 text-[#F4F7F2]',
+    red: 'bg-[#141414] border-[#FF1E27]/50 text-[#F4F7F2]',
+  }
+
   return (
     <div
       className={cn(
-        'bg-[#141414] border border-[#303030] rounded-xl p-4 text-[#F4F7F2]',
+        'border rounded-2xl p-5 shadow-lg transition-colors',
+        surfaceVariants[variant] || surfaceVariants.default,
         className
       )}
       {...props}
@@ -20,7 +29,10 @@ export function Card({ children, className = '', ...props }) {
 
 export function CardHeader({ children, className = '', ...props }) {
   return (
-    <div className={cn('flex flex-col space-y-1.5 pb-3 border-b border-[#252525] mb-3', className)} {...props}>
+    <div
+      className={cn('flex flex-col space-y-1.5 pb-3.5 border-b border-[#262626] mb-4', className)}
+      {...props}
+    >
       {children}
     </div>
   )
@@ -29,7 +41,7 @@ export function CardHeader({ children, className = '', ...props }) {
 export function CardTitle({ children, className = '', ...props }) {
   return (
     <h3
-      className={cn('text-base sm:text-lg font-semibold text-[#F4F7F2]', className)}
+      className={cn('text-base sm:text-lg font-bold text-[#F4F7F2] tracking-tight', className)}
       {...props}
     >
       {children}
@@ -56,11 +68,13 @@ export function CardContent({ children, className = '', ...props }) {
 export function CardFooter({ children, className = '', ...props }) {
   return (
     <div
-      className={cn('flex items-center pt-3 border-t border-[#252525] mt-3', className)}
+      className={cn('flex items-center pt-3.5 border-t border-[#262626] mt-4', className)}
       {...props}
     >
       {children}
     </div>
   )
 }
+
+
 

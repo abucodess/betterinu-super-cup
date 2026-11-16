@@ -195,6 +195,33 @@ export function TeamsPage() {
     });
   }, [players, selectedTeamFilter, positionFilter, searchQuery]);
 
+  const TEAM_PALETTE = [
+    {
+      badgeBg: 'bg-[#001AFF]',
+      badgeText: 'text-[#FFFFFF]',
+      topBar: 'bg-[#001AFF]',
+      headerBg: 'bg-[#001AFF]/15',
+      border: 'border-[#001AFF]/40 hover:border-[#001AFF]',
+      ringTone: 'default',
+    },
+    {
+      badgeBg: 'bg-[#FFC600]',
+      badgeText: 'text-[#090909]',
+      topBar: 'bg-[#FFC600]',
+      headerBg: 'bg-[#FFC600]/10',
+      border: 'border-[#FFC600]/40 hover:border-[#FFC600]',
+      ringTone: 'default',
+    },
+    {
+      badgeBg: 'bg-[#FF1E27]',
+      badgeText: 'text-[#FFFFFF]',
+      topBar: 'bg-[#FF1E27]',
+      headerBg: 'bg-[#FF1E27]/15',
+      border: 'border-[#FF1E27]/40 hover:border-[#FF1E27]',
+      ringTone: 'default',
+    },
+  ];
+
   const renderLiveTeamsBoard = () => (
     <div className="space-y-5 animate-slide-up">
       {/* Live Pick Ticker Banner */}
@@ -209,22 +236,25 @@ export function TeamsPage() {
               setSpotlightReveal(latestAssignment);
             }
           }}
-          className="cursor-pointer rounded-[24px] bg-[#161616] border border-[#B8F34A] px-4 py-3 flex items-center justify-between gap-3 shadow-lg animate-card-pop"
+          className="cursor-pointer rounded-2xl bg-[#181818] border-2 border-[#FFC600] px-4 py-3 flex items-center justify-between gap-3 shadow-md animate-card-pop"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#B8F34A] text-[#090909] text-[10px] font-black uppercase tracking-wider shrink-0">
+            <span className="px-2.5 py-0.5 rounded-md bg-[#FF1E27] text-[#FFFFFF] text-[10px] font-black uppercase tracking-wider shrink-0">
               Latest Pick
             </span>
-            <span className="text-xs sm:text-sm font-bold text-[#F4F7F2] truncate">
-              #{latestAssignment.player.jersey_number} {latestAssignment.player.name}
+            <span className="text-xs sm:text-sm font-black text-[#F4F7F2] truncate">
+              {latestAssignment.player.is_non_player ||
+              Number(latestAssignment.player.jersey_number) === 0
+                ? latestAssignment.player.name
+                : `#${latestAssignment.player.jersey_number} ${latestAssignment.player.name}`}
             </span>
-            <span className="text-xs text-[#9AA69B]">→</span>
-            <span className="text-xs sm:text-sm font-extrabold text-[#B8F34A] truncate">
+            <span className="text-xs font-bold text-[#9AA69B]">→</span>
+            <span className="text-xs sm:text-sm font-extrabold text-[#FFC600] truncate">
               {latestAssignment.team.name}
             </span>
           </div>
-          <span className="text-[11px] font-semibold text-[#B8F34A] shrink-0 hidden sm:inline">
-            Replay Reveal
+          <span className="text-[11px] font-extrabold text-[#FFC600] shrink-0 hidden sm:inline">
+            Replay Reveal →
           </span>
         </div>
       )}
@@ -233,45 +263,62 @@ export function TeamsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {teams.map((team, teamIdx) => {
           const teamRoster = players.filter((p) => p.team_id === team.id);
-          const openSlotsCount = Math.max(0, 5 - teamRoster.length);
+          const activeRoster = teamRoster.filter(
+            (p) => !p.is_non_player && p.position !== 'SUP' && Number(p.jersey_number) !== 0
+          );
+          const supporterRoster = teamRoster.filter(
+            (p) => p.is_non_player || p.position === 'SUP' || Number(p.jersey_number) === 0
+          );
+          const openSlotsCount = Math.max(0, 5 - activeRoster.length);
+          const palette = TEAM_PALETTE[teamIdx % TEAM_PALETTE.length];
 
           return (
             <div
               key={team.id}
               data-testid={`public-team-board-${team.short_code}`}
               style={{ animationDelay: `${teamIdx * 80}ms` }}
-              className="animate-slide-up rounded-[28px] bg-[#161616] border border-white/[0.08] hover:border-[#B8F34A]/60 transition-all duration-300 overflow-hidden flex flex-col shadow-xl"
+              className={`animate-slide-up rounded-2xl bg-[#141414] border ${palette.border} transition-all duration-300 overflow-hidden flex flex-col shadow-sm`}
             >
+              {/* Top Club Color Strip (Blue / Yellow / Red) */}
+              <div className={`h-1.5 w-full ${palette.topBar}`} />
+
               {/* Team Header with SVG CircularRing Progress */}
-              <div className="p-4 sm:p-5 border-b border-white/[0.06] flex items-center justify-between gap-3">
+              <div
+                className={`p-4 sm:p-5 border-b border-[#262626] ${palette.headerBg} flex items-center justify-between gap-3`}
+              >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-11 h-11 rounded-2xl bg-[#B8F34A] text-[#090909] flex items-center justify-center font-black text-xs shrink-0 shadow">
+                  <div
+                    className={`w-11 h-11 rounded-xl ${palette.badgeBg} ${palette.badgeText} flex items-center justify-center font-black text-xs shrink-0 shadow-xs`}
+                  >
                     {team.short_code}
                   </div>
                   <div className="min-w-0">
                     <h2 className="text-base sm:text-lg font-black text-[#F4F7F2] truncate leading-tight">
                       {team.name}
                     </h2>
-                    <p className="text-xs text-[#9AA69B] truncate mt-0.5">
-                      {teamRoster.length >= 5
+                    <p className="text-xs font-semibold text-[#9AA69B] truncate mt-0.5">
+                      {activeRoster.length >= 5
                         ? 'Full 5-Player Squad Complete'
-                        : `${teamRoster.length} of 5 players assigned`}
+                        : `${activeRoster.length} of 5 players assigned`}
+                      {supporterRoster.length > 0
+                        ? ` · ${supporterRoster.length} supporter${supporterRoster.length > 1 ? 's' : ''}`
+                        : ''}
                     </p>
                   </div>
                 </div>
 
                 <CircularRing
-                  value={teamRoster.length}
+                  value={activeRoster.length}
                   max={5}
                   size={52}
                   strokeWidth={4.5}
-                  label={`${teamRoster.length}/5`}
-                  invertColors={false}
+                  label={`${activeRoster.length}/5`}
+                  tone={palette.ringTone}
                 />
               </div>
 
               {/* Assigned Player Cards + Animated Open Slot Placeholders */}
-              <div className="p-3 sm:p-4 flex-1 bg-[#121212]">
+              <div className="p-3.5 sm:p-4 flex-1 bg-[#141414]">
                 <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-3 xl:grid-cols-5 gap-2 justify-items-center">
                   {teamRoster.map((player, idx) => {
                     const isRecent =
@@ -284,7 +331,7 @@ export function TeamsPage() {
                         style={{ animationDelay: `${idx * 55}ms` }}
                         className={`w-full animate-card-pop rounded-xl transition-all duration-300 ${
                           isRecent
-                            ? 'ring-2 ring-[#B8F34A] shadow-[0_0_24px_rgba(184,243,74,0.35)] scale-[1.02]'
+                            ? 'ring-2 ring-[#FFC600] shadow-[0_0_20px_rgba(255,198,0,0.45)] scale-[1.02]'
                             : ''
                         }`}
                       >
@@ -307,21 +354,31 @@ export function TeamsPage() {
 
                   {/* Empty Slot Placeholders */}
                   {Array.from({ length: openSlotsCount }).map((_, idx) => {
-                    const slotNum = teamRoster.length + idx + 1;
+                    const slotNum = activeRoster.length + idx + 1;
                     const isNextSlot = idx === 0;
                     return (
                       <div
                         key={`empty-slot-${team.id}-${slotNum}`}
                         className={`w-full aspect-[3/4] max-w-[92px] sm:max-w-[104px] mx-auto rounded-xl border border-dashed flex flex-col items-center justify-center p-2 text-center transition-all ${
                           isNextSlot
-                            ? 'border-[#B8F34A]/60 bg-[#161616] animate-next-slot'
-                            : 'border-[#242424] bg-[#090909]/60 opacity-60'
+                            ? 'border-[#FFC600]/60 bg-[#1C1C1C] animate-next-slot'
+                            : 'border-[#303030] bg-[#181818]'
                         }`}
                       >
-                        <div className="w-6 h-6 rounded-full border border-[#B8F34A]/50 text-[#B8F34A] flex items-center justify-center text-[10px] font-black mb-1 tabular-nums">
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black mb-1 tabular-nums ${
+                            isNextSlot
+                              ? 'bg-[#FFC600] text-[#090909]'
+                              : 'bg-[#262626] text-[#9AA69B]'
+                          }`}
+                        >
                           #{slotNum}
                         </div>
-                        <span className="text-[9px] font-bold text-[#9AA69B]">
+                        <span
+                          className={`text-[9px] font-bold ${
+                            isNextSlot ? 'text-[#FFC600]' : 'text-[#9AA69B]'
+                          }`}
+                        >
                           {isNextSlot ? 'Next Pick' : 'Open'}
                         </span>
                       </div>
@@ -335,22 +392,24 @@ export function TeamsPage() {
       </div>
 
       {/* Unassigned Draft Pool Section */}
-      <div className="rounded-[28px] bg-[#161616] border border-white/[0.08] p-4 sm:p-5 space-y-3.5 shadow-lg">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+      <div className="rounded-2xl bg-[#141414] border border-[#262626] p-4 sm:p-5 space-y-3.5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262626] pb-3">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#B8F34A]" />
+            <span className="w-7 h-7 rounded-lg bg-[#FFC600]/15 border border-[#FFC600]/40 text-[#FFC600] flex items-center justify-center">
+              <Users className="w-4 h-4" />
+            </span>
             <h3 className="text-xs sm:text-sm font-black text-[#F4F7F2]">
               Available Draft Pool ({unassignedPlayers.length} Remaining)
             </h3>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#B8F34A] font-bold">
-            <span className="w-2 h-2 rounded-full bg-[#B8F34A] animate-pulse" />
+          <div className="flex items-center gap-1.5 text-[11px] text-[#FFC600] font-bold">
+            <Radio className="w-3.5 h-3.5 text-[#FF1E27] animate-pulse" />
             <span>Live Realtime Sync</span>
           </div>
         </div>
 
         {unassignedPlayers.length === 0 ? (
-          <div className="py-5 text-center text-xs sm:text-sm text-[#B8F34A] font-extrabold bg-[#090909] rounded-2xl border border-[#B8F34A]/30 animate-fade-in">
+          <div className="py-5 text-center text-xs sm:text-sm text-[#FFC600] font-extrabold bg-[#1C1C1C] rounded-xl border border-[#FFC600]/40 animate-fade-in">
             All {players.length} custom player cards are assigned to their squads!
           </div>
         ) : (
@@ -383,21 +442,29 @@ export function TeamsPage() {
           : 'space-y-4 sm:space-y-5 pb-6'
       }
     >
-      {/* Solid Bright Lime (#B8F34A) Hero Header Card (Matches Reference Screen 1) */}
-      <div className="rounded-[28px] bg-[#B8F34A] text-[#090909] p-5 sm:p-6 shadow-[0_18px_45px_rgba(184,243,74,0.2)] space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Electric Blue, Golden Yellow & Crimson Red Hero Header Card */}
+      <div className="relative rounded-2xl bg-gradient-to-r from-[#001AFF] via-[#0624C4] to-[#081970] border border-[#3B82F6]/40 text-[#FFFFFF] p-5 sm:p-6 shadow-[0_14px_38px_rgba(0,26,255,0.28)] overflow-hidden space-y-4">
+        {/* Top Tri-Color Accent Ribbon */}
+        <div className="absolute top-0 inset-x-0 h-1.5 flex">
+          <span className="flex-1 bg-[#FFC600]" />
+          <span className="flex-1 bg-[#FF1E27]" />
+          <span className="flex-1 bg-[#001AFF]" />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
           <div className="flex items-center gap-3.5">
             <BrandLogo size="md" />
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#090909] text-[#B8F34A] text-[10px] font-black uppercase tracking-wider mb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#B8F34A] animate-pulse" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#FF1E27] text-[#FFFFFF] text-[10px] font-black uppercase tracking-wider mb-1">
+                <Radio className="w-3 h-3 text-[#FFC600] animate-pulse" />
                 Live Presentation Board
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#090909]">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#FFFFFF]">
                 Teams &amp; Live Draw
               </h1>
-              <p className="text-xs font-bold text-[#090909]/75 tabular-nums">
-                {assignedCount} of {players.length} players assigned to 3 squads
+              <p className="text-xs font-semibold text-[#DBEAFE] tabular-nums">
+                <strong className="text-[#FFC600]">{assignedCount}</strong> of {players.length}{' '}
+                members assigned across 3 official clubs
               </p>
             </div>
           </div>
@@ -408,7 +475,7 @@ export function TeamsPage() {
               {players.slice(0, 4).map((p) => (
                 <div
                   key={p.id}
-                  className="w-9 h-9 rounded-full bg-[#090909] border-2 border-[#B8F34A] overflow-hidden shrink-0"
+                  className="w-9 h-9 rounded-full bg-[#141414] border-2 border-[#FFC600] overflow-hidden shrink-0"
                 >
                   {p.photo_url ? (
                     <img
@@ -417,13 +484,13 @@ export function TeamsPage() {
                       className="w-full h-full object-cover object-top"
                     />
                   ) : (
-                    <span className="w-full h-full flex items-center justify-center text-[10px] font-black text-[#B8F34A]">
+                    <span className="w-full h-full flex items-center justify-center text-[10px] font-black text-[#FFC600]">
                       {p.name?.slice(0, 2)}
                     </span>
                   )}
                 </div>
               ))}
-              <div className="w-9 h-9 rounded-full bg-[#090909] border-2 border-[#B8F34A] flex items-center justify-center text-[10px] font-black text-[#B8F34A] tabular-nums">
+              <div className="w-9 h-9 rounded-full bg-[#FFC600] border-2 border-[#090909] flex items-center justify-center text-[10px] font-black text-[#090909] tabular-nums">
                 +{players.length}
               </div>
             </div>
@@ -434,37 +501,37 @@ export function TeamsPage() {
               size={56}
               strokeWidth={5}
               label={`${progressPercent}%`}
-              invertColors={true}
+              tone="onBlue"
             />
           </div>
         </div>
       </div>
 
-      {/* Segmented Pill Bar + Big Screen / Sound Controls */}
+      {/* Segmented Control Bar + Big Screen Toggle */}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-1.5 bg-[#161616] p-1.5 rounded-full border border-white/[0.07]">
+        <div className="flex items-center gap-1.5 bg-[#141414] p-1.5 rounded-xl border border-[#262626]">
           <button
             type="button"
             onClick={() => setViewMode('live_teams')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-extrabold transition-all whitespace-nowrap ${
               viewMode === 'live_teams'
-                ? 'bg-[#F4F7F2] text-[#090909] shadow'
-                : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                ? 'bg-[#001AFF] text-[#FFFFFF] shadow-xs border border-[#3B82F6]/40'
+                : 'text-[#9AA69B] hover:text-[#F4F7F2] hover:bg-[#1C1C1C]'
             }`}
           >
-            <Shield className="w-3.5 h-3.5" />
+            <Shield className={`w-3.5 h-3.5 ${viewMode === 'live_teams' ? 'text-[#FFC600]' : ''}`} />
             Live Teams (3)
           </button>
           <button
             type="button"
             onClick={() => setViewMode('cards')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-extrabold transition-all whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-extrabold transition-all whitespace-nowrap ${
               viewMode === 'cards'
-                ? 'bg-[#F4F7F2] text-[#090909] shadow'
-                : 'text-[#9AA69B] hover:text-[#F4F7F2]'
+                ? 'bg-[#001AFF] text-[#FFFFFF] shadow-xs border border-[#3B82F6]/40'
+                : 'text-[#9AA69B] hover:text-[#F4F7F2] hover:bg-[#1C1C1C]'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
+            <Users className={`w-3.5 h-3.5 ${viewMode === 'cards' ? 'text-[#FFC600]' : ''}`} />
             All Cards ({players.length})
           </button>
         </div>
@@ -473,16 +540,16 @@ export function TeamsPage() {
           <button
             type="button"
             onClick={() => setIsBigScreen((v) => !v)}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#161616] hover:border-[#B8F34A] text-[#F4F7F2] border border-white/[0.08] text-xs font-extrabold transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC600] hover:bg-[#FFD233] text-[#090909] text-xs font-extrabold transition-colors whitespace-nowrap shadow-[0_6px_20px_rgba(255,198,0,0.25)]"
           >
             {isBigScreen ? (
               <>
-                <Minimize2 className="w-3.5 h-3.5 text-[#B8F34A]" />
+                <Minimize2 className="w-3.5 h-3.5 text-[#090909]" />
                 <span>Exit Big Screen</span>
               </>
             ) : (
               <>
-                <Maximize2 className="w-3.5 h-3.5 text-[#B8F34A]" />
+                <Maximize2 className="w-3.5 h-3.5 text-[#090909]" />
                 <span>Big Screen</span>
               </>
             )}
@@ -497,10 +564,10 @@ export function TeamsPage() {
             <button
               type="button"
               onClick={() => setSelectedTeamFilter('ALL')}
-              className={`shrink-0 px-4 py-2 rounded-full text-xs font-extrabold border transition-all ${
+              className={`shrink-0 px-4 py-2 rounded-xl text-xs font-extrabold border transition-all whitespace-nowrap ${
                 selectedTeamFilter === 'ALL'
-                  ? 'bg-[#B8F34A] text-[#090909] border-[#B8F34A]'
-                  : 'bg-[#161616] text-[#F4F7F2] border-white/[0.08]'
+                  ? 'bg-[#001AFF] text-[#FFFFFF] border-[#3B82F6]'
+                  : 'bg-[#141414] text-[#F4F7F2] border-[#262626] hover:border-[#001AFF]'
               }`}
             >
               All Players ({players.length})
@@ -514,10 +581,10 @@ export function TeamsPage() {
                   key={team.id}
                   type="button"
                   onClick={() => setSelectedTeamFilter(team.id)}
-                  className={`shrink-0 px-4 py-2 rounded-full text-xs font-extrabold border transition-all flex items-center gap-2 ${
+                  className={`shrink-0 px-4 py-2 rounded-xl text-xs font-extrabold border transition-all flex items-center gap-2 whitespace-nowrap ${
                     isSelected
-                      ? 'bg-[#B8F34A] text-[#090909] border-[#B8F34A]'
-                      : 'bg-[#161616] text-[#9AA69B] border-white/[0.08]'
+                      ? 'bg-[#FFC600] text-[#090909] border-[#FFC600]'
+                      : 'bg-[#141414] text-[#9AA69B] border-[#262626] hover:text-[#F4F7F2]'
                   }`}
                 >
                   <span>{team.name}</span>
@@ -527,7 +594,7 @@ export function TeamsPage() {
             })}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-[#161616] p-3 rounded-[24px] border border-white/[0.07]">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-[#141414] p-3 rounded-2xl border border-[#262626]">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-[#9AA69B] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -535,23 +602,25 @@ export function TeamsPage() {
                 placeholder="Search player name or jersey #..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#090909] border border-white/[0.08] rounded-full pl-9 pr-4 py-2 text-xs text-[#F4F7F2] placeholder-[#9AA69B]/60 focus:outline-none focus:border-[#B8F34A]"
+                className="w-full bg-[#202020] border border-[#303030] rounded-xl pl-9 pr-4 py-2 text-xs text-[#F4F7F2] placeholder-[#9AA69B]/70 focus:outline-none focus:border-[#FFC600]"
               />
             </div>
 
             <div className="flex items-center gap-1.5 overflow-x-auto">
-              {['ALL', 'GK', 'CB', 'MF', 'FW'].map((pos) => (
+              {['ALL', 'GK', 'CB', 'MF', 'FW', 'SUP'].map((pos) => (
                 <button
                   key={pos}
                   type="button"
                   onClick={() => setPositionFilter(pos)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-colors ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-colors whitespace-nowrap ${
                     positionFilter === pos
-                      ? 'bg-[#B8F34A] text-[#090909]'
-                      : 'bg-[#090909] text-[#9AA69B] hover:text-[#F4F7F2]'
+                      ? pos === 'SUP'
+                        ? 'bg-[#FF1E27] text-[#FFFFFF]'
+                        : 'bg-[#001AFF] text-[#FFFFFF]'
+                      : 'bg-[#202020] text-[#9AA69B] hover:text-[#F4F7F2]'
                   }`}
                 >
-                  {pos}
+                  {pos === 'SUP' ? 'Supporters' : pos}
                 </button>
               ))}
             </div>
@@ -561,7 +630,7 @@ export function TeamsPage() {
 
       {/* Main Content Area */}
       {loadingTeams || loadingPlayers ? (
-        <Card className="p-8 text-center text-[#9AA69B] rounded-[28px]">
+        <Card className="p-8 text-center text-[#9AA69B] rounded-2xl">
           Loading live teams and player cards...
         </Card>
       ) : viewMode === 'live_teams' ? (
@@ -603,23 +672,29 @@ export function TeamsPage() {
           role="dialog"
           aria-modal="true"
           aria-label="Live player assignment reveal"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in cursor-pointer"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm rounded-[32px] bg-[#161616] border-2 border-[#B8F34A] shadow-[0_0_70px_rgba(184,243,74,0.3)] p-6 text-center space-y-4 animate-spotlight-enter"
+            className="relative w-full max-w-sm rounded-3xl bg-[#141414] border-2 border-[#FFC600] shadow-[0_24px_65px_rgba(0,0,0,0.85)] p-6 text-center space-y-4 animate-spotlight-enter overflow-hidden"
           >
+            <div className="absolute top-0 inset-x-0 h-2 flex">
+              <span className="flex-1 bg-[#001AFF]" />
+              <span className="flex-1 bg-[#FFC600]" />
+              <span className="flex-1 bg-[#FF1E27]" />
+            </div>
+
             <button
               type="button"
               onClick={() => setSpotlightReveal(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#090909] text-[#9AA69B] hover:text-[#F4F7F2] flex items-center justify-center"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#202020] border border-[#303030] text-[#9AA69B] hover:text-[#F4F7F2] flex items-center justify-center"
               aria-label="Dismiss reveal"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B8F34A] text-[#090909] text-xs font-black uppercase tracking-wider">
-              <Radio className="w-3.5 h-3.5 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#FF1E27] text-[#FFFFFF] text-xs font-black uppercase tracking-wider">
+              <Radio className="w-3.5 h-3.5 text-[#FFC600] animate-pulse" />
               Official Team Assignment
             </div>
 
@@ -631,15 +706,15 @@ export function TeamsPage() {
               />
             </div>
 
-            <div className="pt-3 border-t border-white/10 space-y-1.5">
+            <div className="pt-3 border-t border-[#262626] space-y-1.5">
               <p className="text-[11px] uppercase tracking-widest text-[#9AA69B] font-semibold">
                 Drafted To
               </p>
-              <div className="inline-flex items-center justify-center gap-2.5 px-4 py-2 rounded-full bg-[#090909] border border-[#B8F34A]">
-                <span className="w-6 h-6 rounded-full bg-[#B8F34A] flex items-center justify-center text-[10px] font-black text-[#090909]">
+              <div className="inline-flex items-center justify-center gap-2.5 px-4 py-2 rounded-xl bg-[#001AFF] border border-[#FFC600]">
+                <span className="w-6 h-6 rounded-lg bg-[#FFC600] flex items-center justify-center text-[10px] font-black text-[#090909]">
                   {spotlightReveal.team?.short_code}
                 </span>
-                <span className="text-base font-black text-[#F4F7F2]">
+                <span className="text-base font-black text-[#FFFFFF]">
                   {spotlightReveal.team?.name}
                 </span>
               </div>

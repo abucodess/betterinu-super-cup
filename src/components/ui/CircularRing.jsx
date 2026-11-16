@@ -1,8 +1,8 @@
 import React from 'react';
 
 /**
- * Animated SVG Circular Progress Ring inspired by the reference UI.
- * Works on both solid lime cards (invertColors=true) and dark charcoal cards (invertColors=false).
+ * Animated SVG Circular Progress Ring — BetterInU Football League Dark Sports Theme.
+ * Supports dark cards (default), blue banners (tone="onBlue"), yellow accents (tone="onYellow"), and red accents (tone="onRed").
  */
 export function CircularRing({
   value = 0,
@@ -11,15 +11,30 @@ export function CircularRing({
   size = 52,
   strokeWidth = 5,
   invertColors = false,
+  tone = 'default', // 'default' | 'onBlue' | 'onYellow' | 'onRed'
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
   const offset = circumference - ratio * circumference;
 
-  const trackColor = invertColors ? 'rgba(9, 9, 9, 0.16)' : '#262626';
-  const progressColor = invertColors ? '#F4F7F2' : '#B8F34A';
-  const textColor = invertColors ? 'text-[#090909]' : 'text-[#F4F7F2]';
+  const resolvedTone = tone !== 'default' ? tone : invertColors ? 'onYellow' : 'default';
+
+  const trackColor =
+    resolvedTone === 'onBlue'
+      ? 'rgba(255, 255, 255, 0.22)'
+      : 'rgba(255, 255, 255, 0.12)';
+
+  const progressColor =
+    resolvedTone === 'onBlue'
+      ? '#FFC600'
+      : resolvedTone === 'onYellow'
+      ? '#FFC600'
+      : resolvedTone === 'onRed'
+      ? '#FF1E27'
+      : '#3B82F6';
+
+  const textColor = 'text-[#F4F7F2]';
 
   return (
     <div
@@ -49,7 +64,7 @@ export function CircularRing({
         />
       </svg>
       <span
-        className={`absolute inset-0 flex items-center justify-center text-xs font-black tabular-nums ${textColor}`}
+        className={`absolute inset-0 flex items-center justify-center text-xs font-extrabold tabular-nums ${textColor}`}
       >
         {label !== undefined ? label : value}
       </span>
@@ -58,3 +73,5 @@ export function CircularRing({
 }
 
 export default CircularRing;
+
+

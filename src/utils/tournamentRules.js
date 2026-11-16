@@ -387,12 +387,20 @@ export function mapSquadToFormationSlots(squad = [], formationKey = '1-2-1') {
   const formation = TACTICAL_FORMATIONS[formationKey] || TACTICAL_FORMATIONS['1-2-1'];
   const usedPlayerIds = new Set();
 
-  const gkPlayer = squad.find((p) => p.is_goalkeeper || p.position === 'GK') || null;
+  // Exclude non-player supporters from on-pitch formation slots
+  const activeSquad = squad.filter(
+    (p) => !p.is_non_player && p.position !== 'SUP' && Number(p.jersey_number) !== 0
+  );
+
+  const gkPlayer =
+    activeSquad.find((p) => p.is_goalkeeper || p.position === 'GK') || null;
   if (gkPlayer) {
     usedPlayerIds.add(gkPlayer.id);
   }
 
-  const outfieldPlayers = squad.filter((p) => !p.is_goalkeeper && p.position !== 'GK');
+  const outfieldPlayers = activeSquad.filter(
+    (p) => !p.is_goalkeeper && p.position !== 'GK'
+  );
 
   const mappedSlots = formation.slots.map((slot, index) => {
     if (index === 0) {
@@ -445,7 +453,20 @@ export function validatePlayerAllocation({ player, targetTeamId, allPlayers = []
     return { valid: false, reason: 'Please select a receiving team.' };
   }
 
-  const teamSquad = allPlayers.filter((p) => p.team_id === targetTeamId);
+  const isNonPlayer = Boolean(
+    player.is_non_player || player.position === 'SUP' || Number(player.jersey_number) === 0
+  );
+  if (isNonPlayer) {
+    return { valid: true, reason: null };
+  }
+
+  const teamSquad = allPlayers.filter(
+    (p) =>
+      p.team_id === targetTeamId &&
+      !p.is_non_player &&
+      p.position !== 'SUP' &&
+      Number(p.jersey_number) !== 0
+  );
   if (teamSquad.length >= 5) {
     return { valid: false, reason: 'Team already has the maximum of 5 players.' };
   }

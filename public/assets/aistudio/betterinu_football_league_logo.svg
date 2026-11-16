@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 620" fill="none">
+  <defs>
+    <style>
+      .bfl-font {
+        font-family: 'Arial Black', 'Inter', 'Montserrat', 'Helvetica Neue', sans-serif;
+        font-weight: 900;
+        font-style: italic;
+        text-transform: uppercase;
+      }
+    </style>
+  </defs>
+
+  <g transform="translate(460, 315) rotate(-5.5) skewX(-6) translate(-435, -285)">
+    <!-- Solid interior fill to bridge gaps between the 3 stacked lines -->
+    <polygon
+      points="48,72 525,72 795,185 835,485 40,495"
+      fill="#001AFF"
+      stroke="#001AFF"
+      stroke-width="76"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+
+    <!-- Contoured #001AFF Die-Cut Sticker Outer Silhouette -->
+    <g
+      class="bfl-font"
+      fill="#001AFF"
+      stroke="#001AFF"
+      stroke-width="88"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      paint-order="stroke fill"
+    >
+      <text x="52" y="138" font-size="96" letter-spacing="-2">BETTERINU</text>
+      <text x="42" y="292" font-size="164" letter-spacing="-5">FOOTBALL</text>
+      <text x="36" y="472" font-size="196" letter-spacing="-6">LEAGUE</text>
+    </g>
+
+    <!-- Crisp White Stacked Typography -->
+    <g class="bfl-font" fill="#FFFFFF">
+      <text x="52" y="138" font-size="96" letter-spacing="-2">BETTERINU</text>
+      <text x="42" y="292" font-size="164" letter-spacing="-5">FOOTBALL</text>
+      <text x="36" y="472" font-size="196" letter-spacing="-6">LEAGUE</text>
+    </g>
+  </g>
+</svg>

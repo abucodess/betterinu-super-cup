@@ -1,12 +1,12 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Heart } from 'lucide-react';
 import { PlayerCard } from './PlayerCard';
 import { calculatePlayerProfileMetrics } from '../../utils/tournamentRules';
 
 /**
- * Clean, Mobile-First Player Card Popup Modal.
- * Displays the uploaded eFootball Player Card prominently along with team assignment
- * and a concise 4-metric tournament stat strip that fits on a 390px phone screen.
+ * Clean, Mobile-First Player & Team Supporter Card Popup Modal.
+ * Displays the uploaded eFootball Player Card or Team Supporter Card along with team assignment
+ * and either a 4-metric tournament stat strip (for players) or supporter details (for non-players).
  */
 export function PlayerProfileModal({
   player,
@@ -18,9 +18,12 @@ export function PlayerProfileModal({
 }) {
   if (!player) return null;
 
+  const isNonPlayer = Boolean(
+    player.is_non_player || player.position === 'SUP' || player.jersey_number === 0
+  );
   const resolvedTeam = team || player.team || null;
   const metrics = calculatePlayerProfileMetrics(player, stats, matchEvents, teamMatches);
-  const isGK = metrics.isGoalkeeper;
+  const isGK = metrics?.isGoalkeeper;
 
   return (
     <div
@@ -41,10 +44,11 @@ export function PlayerProfileModal({
               id="player-profile-modal-title"
               className="text-sm font-bold text-[#F4F7F2] truncate"
             >
-              #{player.jersey_number} {player.name}
+              {isNonPlayer ? player.name : `#${player.jersey_number} ${player.name}`}
             </h2>
             <p className="text-[11px] text-[#9AA69B] truncate">
-              {player.position} • {resolvedTeam?.name || 'Unallocated Pool'}
+              {isNonPlayer ? 'Team Supporter' : player.position} •{' '}
+              {resolvedTeam?.name || (isNonPlayer ? 'All Teams' : 'Unallocated Pool')}
             </p>
           </div>
           <button
@@ -57,7 +61,7 @@ export function PlayerProfileModal({
           </button>
         </div>
 
-        {/* Body: Pre-Made eFootball Card + Compact 4-Stat Strip */}
+        {/* Body: Card + Stats or Supporter Details */}
         <div className="p-4 space-y-4">
           <div className="max-w-[210px] mx-auto">
             <PlayerCard
@@ -70,7 +74,22 @@ export function PlayerProfileModal({
             />
           </div>
 
-          {isGK ? (
+          {isNonPlayer ? (
+            <div className="p-3.5 rounded-xl bg-[#202020] border border-[#303030] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#B8F34A]">
+                  <Heart className="w-3.5 h-3.5" />
+                  <span>Non-Player • Team Supporter</span>
+                </span>
+                <span className="text-[11px] font-semibold text-[#9AA69B]">
+                  {resolvedTeam?.short_code || 'Club Support'}
+                </span>
+              </div>
+              <p className="text-xs text-[#F4F7F2] leading-relaxed">
+                {player.details || 'Official Team Supporter'}
+              </p>
+            </div>
+          ) : isGK ? (
             <div className="grid grid-cols-4 gap-2 text-center tabular-nums">
               <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
                 <span className="text-[10px] text-[#9AA69B] block">Apps</span>
@@ -118,3 +137,4 @@ export function PlayerProfileModal({
 }
 
 export default PlayerProfileModal;
+

@@ -5,6 +5,17 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --color-primary-yellow: #FFC600;
+    --color-primary-blue: #001AFF;
+    --color-primary-red: #FF1E27;
+    --color-bg-main: #090909;
+    --color-bg-secondary: #141414;
+    --color-surface-card: #141414;
+    --color-surface-secondary: #202020;
+    --color-text-primary: #F4F7F2;
+    --color-text-secondary: #9AA69B;
+    --color-border-default: #262626;
+    --color-border-strong: #303030;
   }
 
   html {
@@ -34,7 +45,7 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #B8F34A;
+    background: #FFC600;
   }
 }
 

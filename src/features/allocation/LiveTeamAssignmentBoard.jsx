@@ -243,6 +243,10 @@ export function LiveTeamAssignmentBoard({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {teams.map((team) => {
           const teamRoster = players.filter((p) => p.team_id === team.id);
+          const activeSquadCount = teamRoster.filter(
+            (p) => !p.is_non_player && p.position !== 'SUP' && Number(p.jersey_number) !== 0
+          ).length;
+          const supporterCount = teamRoster.length - activeSquadCount;
           const isOver = dragOverTarget === team.id;
           const teamColor = team.color_code || '#B8F34A';
 
@@ -273,13 +277,15 @@ export function LiveTeamAssignmentBoard({
                       {team.name}
                     </h3>
                     <span className="text-[10px] text-[#9AA69B] block leading-none mt-0.5">
-                      Drop player card here
+                      {supporterCount > 0
+                        ? `${activeSquadCount}/5 players • ${supporterCount} supporter${supporterCount > 1 ? 's' : ''}`
+                        : 'Drop player card here'}
                     </span>
                   </div>
                 </div>
 
                 <span className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-md bg-[#202020] text-[#F4F7F2]">
-                  {teamRoster.length} / 5
+                  {activeSquadCount} / 5
                 </span>
               </div>
 
@@ -378,7 +384,7 @@ export function LiveTeamAssignmentBoard({
             </div>
 
             <div className="flex items-center gap-1">
-              {['ALL', 'GK', 'CB', 'MF', 'FW'].map((pos) => (
+              {['ALL', 'GK', 'CB', 'MF', 'FW', 'SUP'].map((pos) => (
                 <button
                   key={pos}
                   type="button"
@@ -389,7 +395,7 @@ export function LiveTeamAssignmentBoard({
                       : 'bg-[#202020] text-[#9AA69B] hover:text-[#F4F7F2]'
                   }`}
                 >
-                  {pos}
+                  {pos === 'SUP' ? 'SUPPORTER' : pos}
                 </button>
               ))}
             </div>

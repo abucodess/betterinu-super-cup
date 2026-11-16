@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, Heart } from 'lucide-react';
 import { cloudinaryService } from '../../services/cloudinary/cloudinary.service';
 
 /**
- * Pre-Made eFootball Player Card Display Component.
+ * Pre-Made eFootball Player Card & Non-Player Team Supporter Card Display Component.
  * Supports compact sizing ('xs' | 'sm' | 'md') so Admin drag-and-drop boards
  * and public live draw grids fit many cards cleanly without scrolling.
  */
@@ -24,11 +24,22 @@ export function PlayerCard({
 
   if (!player) return null;
 
+  const isNonPlayer = Boolean(
+    player.is_non_player || player.position === 'SUP' || player.jersey_number === 0
+  );
   const resolvedTeam = team || player.team || null;
   const teamColor = resolvedTeam?.color_code || '#B8F34A';
   const surname = player.name
     ? player.name.trim().split(/\s+/).slice(-1)[0].toUpperCase()
     : 'PLAYER';
+  const initials = player.name
+    ? player.name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((w) => w[0]?.toUpperCase() || '')
+        .join('')
+    : 'SP';
 
   const rawCardUrl = cloudinaryService.getOptimizedPortraitUrl(player.photo_url);
   const cardImageUrl = !imgError && rawCardUrl ? rawCardUrl : '';
@@ -40,7 +51,7 @@ export function PlayerCard({
         type="button"
         onClick={() => onSelect && onSelect(player)}
         className={`group relative flex flex-col items-center w-[68px] sm:w-[80px] select-none transition-transform duration-150 hover:-translate-y-1 hover:scale-105 focus:outline-none ${className}`}
-        aria-label={`Inspect ${player.name}, ${player.position}`}
+        aria-label={`Inspect ${player.name}, ${isNonPlayer ? 'Team Supporter' : player.position}`}
       >
         {cardImageUrl ? (
           <div className="w-12 sm:w-14 aspect-[3/4] rounded-lg overflow-hidden drop-shadow-[0_6px_12px_rgba(0,0,0,0.75)]">
@@ -56,10 +67,10 @@ export function PlayerCard({
         ) : (
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#141414] border-2 border-[#303030] group-hover:border-[#B8F34A] flex flex-col items-center justify-center shadow-lg">
             <span className="text-xs font-black text-[#B8F34A] tabular-nums leading-none">
-              #{player.jersey_number}
+              {isNonPlayer ? initials : `#${player.jersey_number}`}
             </span>
             <span className="text-[8px] font-bold text-[#9AA69B] uppercase mt-0.5">
-              {player.position}
+              {isNonPlayer ? 'SUP' : player.position}
             </span>
           </div>
         )}
@@ -77,7 +88,7 @@ export function PlayerCard({
       ? 'max-w-[165px] sm:max-w-[185px]'
       : 'max-w-[120px] sm:max-w-[134px]';
 
-  // PRE-MADE EFOOTBALL CARD VIEW
+  // PRE-MADE EFOOTBALL CARD / TEAM SUPPORTER CARD VIEW
   return (
     <div className={`flex flex-col items-center w-full ${className}`}>
       <div
@@ -103,11 +114,51 @@ export function PlayerCard({
             <img
               key={cardImageUrl}
               src={cardImageUrl}
-              alt={`${player.name} eFootball Card`}
+              alt={`${player.name} ${isNonPlayer ? 'Supporter' : 'eFootball'} Card`}
               onError={() => setImgError(true)}
               draggable={false}
               className="w-full h-full object-contain rounded-lg pointer-events-none"
             />
+            {isNonPlayer && (
+              <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-[#090909]/85 border border-[#B8F34A]/60 text-[8px] font-black uppercase tracking-wider text-[#B8F34A]">
+                SUPPORTER
+              </span>
+            )}
+          </div>
+        ) : isNonPlayer ? (
+          /* Clean Dedicated Card for Non-Player Team Supporters (No Photo Required) */
+          <div
+            className={`relative w-full aspect-[3/4] rounded-xl bg-gradient-to-b from-[#1A1A1A] to-[#111111] border border-[#303030] group-hover:border-[#B8F34A]/60 ${
+              size === 'xs' ? 'p-2' : 'p-2.5'
+            } flex flex-col justify-between shadow-md`}
+          >
+            <div className="flex items-center justify-between gap-1">
+              <span className="px-1.5 py-0.5 rounded bg-[#B8F34A]/15 border border-[#B8F34A]/40 text-[8px] font-black uppercase tracking-wider text-[#B8F34A]">
+                SUPPORTER
+              </span>
+              <Heart className="w-3 h-3 text-[#B8F34A] shrink-0" />
+            </div>
+
+            <div className="my-auto flex flex-col items-center justify-center text-center py-1">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black text-[#090909] mb-1.5 shadow"
+                style={{ backgroundColor: teamColor }}
+              >
+                {initials}
+              </div>
+              <p className="text-[10px] font-extrabold text-[#F4F7F2] line-clamp-1 leading-tight">
+                {player.name}
+              </p>
+              <p className="text-[8px] font-medium text-[#9AA69B] line-clamp-2 leading-tight mt-0.5">
+                {player.details || 'Team Supporter'}
+              </p>
+            </div>
+
+            <div className="pt-1 border-t border-[#262626] text-center">
+              <span className="text-[8px] font-semibold text-[#B8F34A] block truncate">
+                {resolvedTeam ? `${resolvedTeam.short_code} Supporter` : 'Team Supporter'}
+              </span>
+            </div>
           </div>
         ) : (
           /* Clean Minimal Fallback When No Pre-Made Card Image Has Been Uploaded Yet */
@@ -145,7 +196,7 @@ export function PlayerCard({
           </div>
         )}
 
-        {/* Compact Player Name & Team Caption Under Uploaded Card */}
+        {/* Compact Player / Supporter Name & Team Caption Under Uploaded Card */}
         {cardImageUrl && (
           <div className="mt-1 flex items-center justify-between gap-1 px-0.5">
             <span
@@ -153,10 +204,10 @@ export function PlayerCard({
                 size === 'xs' ? 'text-[10px]' : 'text-[11px]'
               } font-bold text-[#F4F7F2] truncate`}
             >
-              #{player.jersey_number} {player.name}
+              {isNonPlayer ? player.name : `#${player.jersey_number} ${player.name}`}
             </span>
             <span className="text-[9px] font-semibold text-[#B8F34A] shrink-0">
-              {resolvedTeam?.short_code || player.position}
+              {resolvedTeam?.short_code || (isNonPlayer ? 'SUP' : player.position)}
             </span>
           </div>
         )}
@@ -178,3 +229,4 @@ export function PlayerCard({
 }
 
 export default PlayerCard;
+

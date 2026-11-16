@@ -1,18 +1,15 @@
 import React from 'react';
-import { LandingNavbar } from '../../components/landing/LandingNavbar';
 import { HeroSection } from '../../components/landing/HeroSection';
-import { BelowFoldSections } from '../../components/landing/BelowFoldSections';
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen w-full bg-[#090909] text-[#F4F7F2] overflow-x-hidden">
-      <LandingNavbar />
-      <main>
+    <div className="h-dvh w-full bg-[#001AFF] text-[#F4F7F2] overflow-hidden">
+      <main className="h-full w-full">
         <HeroSection />
-        <BelowFoldSections />
       </main>
     </div>
   );
 }
 
 export default LandingPage;
+

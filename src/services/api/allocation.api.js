@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/client';
+import { normalizePlayerRecord } from './players.api';
 
 const DRAFT_CHANNEL_NAME = 'supercup_live_draft_v1';
 let broadcastChannel = null;
@@ -56,7 +57,7 @@ export const allocationApi = {
 
     const cleanTeamId = teamId || null;
 
-    const { data: updatedPlayer, error: updateErr } = await supabase
+    const { data: rawUpdatedPlayer, error: updateErr } = await supabase
       .from('players')
       .update({
         team_id: cleanTeamId,
@@ -69,6 +70,8 @@ export const allocationApi = {
     if (updateErr) {
       throw new Error(updateErr.message);
     }
+
+    const updatedPlayer = normalizePlayerRecord(rawUpdatedPlayer);
 
     // Record non-blocking history audit log when assigning to a team
     if (cleanTeamId) {
@@ -99,6 +102,8 @@ export const allocationApi = {
       playerPhotoUrl: updatedPlayer.photo_url,
       playerPosition: updatedPlayer.position,
       playerJersey: updatedPlayer.jersey_number,
+      isNonPlayer: updatedPlayer.is_non_player,
+      playerDetails: updatedPlayer.details,
       teamId: cleanTeamId,
       teamName: updatedPlayer.team?.name || null,
       teamShortCode: updatedPlayer.team?.short_code || null,
@@ -154,12 +159,20 @@ export const allocationApi = {
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
-    return (data || []).map((row) => ({
-      ...row,
-      pool_category:
-        row.pool_category ||
-        (row.player?.position === 'GK' ? 'GK' : 'OUTFIELD'),
-    }));
+    return (data || []).map((row) => {
+      const normPlayer = row.player ? normalizePlayerRecord(row.player) : null;
+      return {
+        ...row,
+        player: normPlayer,
+        pool_category:
+          row.pool_category ||
+          (normPlayer?.is_non_player
+            ? 'SUPPORTER'
+            : normPlayer?.position === 'GK'
+            ? 'GK'
+            : 'OUTFIELD'),
+      };
+    });
   },
 
   /**
