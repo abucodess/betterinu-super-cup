@@ -9,7 +9,7 @@ const SIZE_CLASSES = {
   sm: 'h-9 sm:h-10 w-auto',
   md: 'h-10 sm:h-12 md:h-14 w-auto',
   lg: 'h-12 sm:h-16 md:h-20 w-auto',
-  hero: 'h-14 sm:h-20 md:h-24 lg:h-28 w-auto',
+  hero: 'h-14 sm:h-20 md:h-24 lg:h-[11vh] lg:min-h-[96px] lg:max-h-[160px] w-auto',
 };
 
 export function BrandLogo({ size = 'md', to = '/', className = '' }) {

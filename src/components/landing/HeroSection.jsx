@@ -62,7 +62,7 @@ export function HeroSection() {
       id="hero"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative h-dvh min-h-[680px] max-h-[1080px] w-full bg-[#001AFF] text-white overflow-hidden select-none flex flex-col justify-between"
+      className="relative h-screen h-dvh min-h-[640px] w-full bg-[#001AFF] text-white overflow-hidden select-none flex flex-col justify-between"
     >
       {/* Top Tri-Color Championship Ribbon (Blue • Yellow • Red) */}
       <div
@@ -87,22 +87,6 @@ export function HeroSection() {
         }}
       />
 
-      {/* Top-Right Inner Golden Yellow Accent Arc */}
-      <div
-        className="pointer-events-none absolute top-0 right-0 w-[55vw] sm:w-[38.5vw] h-[36vh] sm:h-[48.5vh] bg-[#FFC600] -z-10 opacity-95"
-        style={{
-          clipPath: 'ellipse(94% 90% at 100% 0%)',
-        }}
-      />
-
-      {/* Bottom-Left Curved Golden Yellow Corner Shape */}
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 w-[46vw] sm:w-[30vw] h-[26vh] sm:h-[36vh] bg-[#FFC600] z-0 transition-transform duration-500"
-        style={{
-          clipPath: 'ellipse(90% 86% at 0% 100%)',
-        }}
-      />
-
       {/* Bottom-Right Curved Deep Emerald Corner Shape */}
       <div
         className="pointer-events-none absolute bottom-0 right-0 w-[55vw] sm:w-[38vw] h-[38vh] sm:h-[52vh] bg-[#00B140] z-0 transition-transform duration-500"
@@ -118,7 +102,7 @@ export function HeroSection() {
       >
         <div
           ref={leftTrackRef}
-          className="flex flex-col items-center text-[11px] sm:text-xs font-extrabold tracking-[0.24em] text-white uppercase will-change-transform"
+          className="flex flex-col items-center text-[11px] sm:text-xs font-extrabold tracking-[0.24em] text-white/95 uppercase will-change-transform"
         >
           {[0, 1].map((halfIdx) => (
             <div
@@ -126,16 +110,12 @@ export function HeroSection() {
               ref={halfIdx === 0 ? leftHalfRef : undefined}
               className="flex flex-col items-center shrink-0"
             >
-              {[0, 1, 2, 3, 4, 5].map((itemIdx) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((itemIdx) => (
                 <div key={itemIdx} className="flex flex-col items-center gap-5 py-2.5 shrink-0">
-                  <span className="writing-vertical-rl rotate-180 whitespace-nowrap block drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+                  <span className="writing-vertical-rl rotate-180 whitespace-nowrap block">
                     BETTERINU FOOTBALL LEAGUE 2026
                   </span>
-                  <span
-                    className={`w-[2px] h-10 shrink-0 block rounded-full ${
-                      itemIdx % 2 === 0 ? 'bg-[#FFC600]' : 'bg-[#FF1E27]'
-                    }`}
-                  />
+                  <span className="w-[1.5px] h-10 shrink-0 block rounded-full bg-white/80" />
                 </div>
               ))}
             </div>
@@ -150,20 +130,16 @@ export function HeroSection() {
       >
         <div
           ref={rightTrackRef}
-          className="flex flex-col items-center text-[11px] sm:text-xs font-extrabold tracking-[0.24em] text-white uppercase will-change-transform"
+          className="flex flex-col items-center text-[11px] sm:text-xs font-extrabold tracking-[0.24em] text-white/95 uppercase will-change-transform"
         >
           {[0, 1].map((halfIdx) => (
             <div key={halfIdx} className="flex flex-col items-center shrink-0">
-              {[0, 1, 2, 3, 4, 5].map((itemIdx) => (
+              {[0, 1, 2, 3, 4, 5, 6, 7].map((itemIdx) => (
                 <div key={itemIdx} className="flex flex-col items-center gap-5 py-2.5 shrink-0">
-                  <span className="writing-vertical-rl whitespace-nowrap block drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+                  <span className="writing-vertical-rl whitespace-nowrap block">
                     BETTERINU FOOTBALL LEAGUE 2026
                   </span>
-                  <span
-                    className={`w-[2px] h-10 shrink-0 block rounded-full ${
-                      itemIdx % 2 === 0 ? 'bg-[#FFC600]' : 'bg-[#FF1E27]'
-                    }`}
-                  />
+                  <span className="w-[1.5px] h-10 shrink-0 block rounded-full bg-white/80" />
                 </div>
               ))}
             </div>
@@ -171,11 +147,11 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* LAYER 1 (Z-10): CENTRAL GIANT BETTY ROBOT MASCOT (#10 JERSEY) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-2 z-10 flex items-end justify-center overflow-hidden">
+      {/* LAYER 1 (Z-10): CENTRAL GIANT BETTY ROBOT MASCOT (#10 JERSEY) — STRICTLY PINNED TO BOTTOM */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-0 z-10 flex items-end justify-center overflow-hidden">
         <div
           style={{
-            transform: `translate3d(${parallax.x}px, ${parallax.y}px, 0)`,
+            transform: `translate3d(${parallax.x}px, 0px, 0)`,
             transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
           className="relative h-[86vh] sm:h-[94vh] w-auto flex items-end justify-center"
@@ -184,44 +160,66 @@ export function HeroSection() {
             src={BETTY_MASCOT_URL}
             alt="Betty — Official BetterInU Super Cup #10 Robot Mascot"
             referrerPolicy="no-referrer"
-            className="h-full w-auto max-w-none object-contain object-bottom drop-shadow-[0_20px_45px_rgba(0,0,0,0.32)]"
+            className="h-full w-auto max-w-none object-contain object-bottom block drop-shadow-[0_20px_45px_rgba(0,0,0,0.35)]"
           />
         </div>
       </div>
 
-      {/* LAYER 2 (Z-20): OVERLAPPING STAGGERED WHITE FIFA-STYLE BLOCK TYPOGRAPHY (BETTERINU FOOTBALL LEAGUE) */}
-      <div className="pointer-events-none relative z-20 flex-1 flex flex-col justify-end pb-8 sm:pb-10 px-4 sm:px-12">
-        <div className="w-full max-w-[1120px] mx-auto flex flex-col">
-          {/* Giant Line 1 (Shifted Left — Overlaps Left/Center of Betty's Chest) */}
-          <div className="md:pl-[3%] lg:pl-[5%]">
-            <h1 className="font-fifa-wide text-[clamp(2.2rem,7.6vw,6.4rem)] font-black uppercase leading-[0.88] tracking-[-0.04em] text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.22)] whitespace-nowrap">
-              <span className="block">BETTERINU</span>
-            </h1>
-          </div>
-
-          {/* Giant Line 2 (Staggered/Indented Right — Overlaps Center/Right of Betty's Chest) */}
-          <div className="self-end md:pr-[1%] lg:pr-[2%] -mt-0.5 sm:-mt-2 flex flex-col items-end">
-            <div className="relative inline-block">
-              <span className="font-fifa-wide text-[clamp(1.65rem,6.1vw,5.2rem)] font-black uppercase leading-[0.88] tracking-[-0.04em] text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.22)] block whitespace-nowrap">
-                FOOTBALL LEAGUE
-              </span>
+      {/* LAYER 2 (Z-20): STAGGERED WHITE FIFA-STYLE BLOCK TYPOGRAPHY (BETTERINU FOOTBALL LEAGUE) */}
+      <div className="pointer-events-none relative z-20 flex-1 flex flex-col justify-end pb-6 sm:pb-[3.5vh] px-8 sm:px-12 md:px-16">
+        <div className="w-full max-w-[min(92vw,151vh)] mx-auto flex flex-col">
+          {/* Title Lockup Positioned Squarely Over Betty's Chest (Scales With Viewport Height on Tall Monitors) */}
+          <div className="mb-12 sm:mb-[11.3vh] flex flex-col">
+            {/* Giant Line 1 (Aligned With Top-Left Logo & Spans Across Chest to Right Sleeve Armband) */}
+            <div className="self-start pl-[1%] sm:pl-[4.5%] md:pl-[6%]">
+              <h1
+                style={{
+                  transform: 'scaleX(1.26)',
+                  transformOrigin: 'left center',
+                  letterSpacing: '0.01em',
+                  textShadow: '0 10px 28px rgba(0, 8, 45, 0.38)',
+                }}
+                className="font-fifa-wide text-[clamp(1.6rem,min(7.05vw,11.3vh),14rem)] font-black uppercase leading-[0.86] text-white whitespace-nowrap"
+              >
+                <span className="block">BETTERINU</span>
+              </h1>
             </div>
 
-            {/* 2026 Tucked Under Right Edge of FOOTBALL LEAGUE with Yellow & Red Accent Bar */}
-            <div className="mt-1 sm:mt-1.5 flex items-center justify-end gap-2.5">
-              <span className="inline-flex items-center overflow-hidden rounded-full shadow-sm">
-                <span className="w-4 sm:w-6 h-1.5 sm:h-2 bg-[#FFC600]" />
-                <span className="w-4 sm:w-6 h-1.5 sm:h-2 bg-[#FF1E27]" />
-                <span className="w-4 sm:w-6 h-1.5 sm:h-2 bg-[#001AFF]" />
-              </span>
-              <span className="font-fifa-wide text-lg sm:text-2xl md:text-3xl font-black text-[#FFC600] drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)] tracking-tight">
-                2026
-              </span>
+            {/* Giant Line 2 (Staggered Right — Covers #10 & Extends Over Green Curve) */}
+            <div className="self-end pr-[1%] sm:pr-[1%] mt-0.5 sm:mt-[0.5vh] flex flex-col items-end">
+              <div className="relative inline-flex items-center">
+                <span
+                  style={{
+                    transform: 'scaleX(0.95)',
+                    transformOrigin: 'right center',
+                    letterSpacing: '-0.01em',
+                    textShadow: '0 10px 28px rgba(0, 8, 45, 0.38)',
+                  }}
+                  className="font-fifa-wide text-[clamp(1.22rem,min(6.25vw,10.05vh),12.5rem)] font-black uppercase leading-[0.86] text-white block whitespace-nowrap"
+                >
+                  FOOTBALL LEAGUE
+                </span>
+              </div>
+
+              {/* 2026 Tucked Under Right Edge of FOOTBALL LEAGUE */}
+              <div className="mt-2 sm:mt-[1.5vh] pr-0.5 flex items-center justify-end">
+                <span
+                  style={{
+                    transform: 'scaleX(1.14)',
+                    transformOrigin: 'right center',
+                    letterSpacing: '0.02em',
+                    textShadow: '0 4px 16px rgba(0, 8, 45, 0.35)',
+                  }}
+                  className="font-fifa-wide text-[clamp(1rem,min(2.2vw,3.45vh),4.2rem)] font-black text-white leading-none"
+                >
+                  2026
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Bottom Centered Interactive Betty Kick Animation CTA Button */}
-          <div className="pointer-events-auto mt-5 sm:mt-7 flex flex-col items-center">
+          <div className="pointer-events-auto flex flex-col items-center">
             <BettyKickButton
               label="KICKOFF"
               size="sm"
