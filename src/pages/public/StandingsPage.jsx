@@ -72,7 +72,7 @@ export function StandingsPage() {
               League Table &amp; Stats
             </h1>
             <p className="text-[11px] sm:text-xs font-medium text-[#9AA69B]">
-              Top 2 clubs advance to the BetterInU League Grand Final
+              Top 2 clubs advance to the Betterinu Football league Grand Final
             </p>
           </div>
         </div>

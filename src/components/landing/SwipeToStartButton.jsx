@@ -8,7 +8,7 @@ import { ArrowRight, ChevronRight, Check } from 'lucide-react';
  */
 export function SwipeToStartButton({
   label = 'DRAG ARROW TO ENTER THE CUP',
-  completedLabel = 'LAUNCHING SUPER CUP...',
+  completedLabel = 'OPENING THE LEAGUE...',
   onComplete,
   variant = 'dark', // 'dark' (black track on lime hero) | 'lime' (lime border on dark bg)
   className = '',

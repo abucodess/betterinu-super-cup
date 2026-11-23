@@ -266,7 +266,7 @@ export function FixturesPage() {
                 </h3>
 
                 <p className="text-xs font-semibold text-[#DBEAFE]">
-                  BetterInU Football League Grand Final · Main Stadium Pitch
+                  Betterinu Football league Grand Final · Main Stadium Pitch
                 </p>
               </div>
 

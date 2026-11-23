@@ -18,7 +18,7 @@ export function BrandLogo({ size = 'md', to = '/', className = '' }) {
   const logoImg = (
     <img
       src={OFFICIAL_LOGO_URL}
-      alt="BetterInU Football League Logo"
+      alt="Betterinu Football league Logo"
       className={`${sizeClass} max-w-none object-contain select-none shrink-0 drop-shadow-[0_6px_16px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:scale-105 ${className}`}
     />
   );
@@ -30,7 +30,7 @@ export function BrandLogo({ size = 'md', to = '/', className = '' }) {
   return (
     <Link
       to={to}
-      aria-label="BetterInU Football League Home"
+      aria-label="Betterinu Football league Home"
       className="inline-flex items-center shrink-0 overflow-visible focus:outline-none"
     >
       {logoImg}

@@ -99,7 +99,7 @@ export function TournamentHomePage() {
               Official Competition Dashboard
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#F4F7F2]">
-              BetterInU Football League
+              Betterinu Football league
             </h1>
           </div>
         </div>

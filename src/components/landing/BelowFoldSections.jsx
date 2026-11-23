@@ -66,7 +66,7 @@ export function BelowFoldSections() {
         shortCode: 'FIN',
         color: '#B8F34A',
         playerCount: players.length,
-        subtitle: 'Top 2 League Seeds Advance to the Super Cup Final',
+        subtitle: 'Top 2 league seeds advance to the grand final',
         link: '/public/fixtures',
       });
     }
@@ -93,10 +93,10 @@ export function BelowFoldSections() {
 
           <div className="lg:col-span-5 space-y-6 pt-2">
             <p className="text-base sm:text-lg text-[#F4F7F2]/90 leading-relaxed font-medium">
-              The <strong className="text-[#B8F34A]">BetterInU Super Cup 2026</strong> brings campus athletes and supporters together through high-intensity 5-a-side football, live stage squad drafts, and real-time match telemetry.
+              The <strong className="text-[#B8F34A]">Betterinu Football league 2026</strong> brings campus athletes and supporters together through high-intensity 5-a-side football, live stage squad drafts, and real-time match telemetry.
             </p>
             <p className="text-sm sm:text-base text-[#9AA69B] leading-relaxed">
-              Every custom player card is drafted live onto the big screen, every goal updates the league table in real time, and only the top two clubs earn their place in the Super Cup Grand Final.
+              Every custom player card is drafted live onto the big screen, every goal updates the league table in real time, and only the top two clubs earn their place in the grand final.
             </p>
 
             {/* Concrete Tournament Proof Strip */}
@@ -373,19 +373,16 @@ export function BelowFoldSections() {
         </div>
       </section>
 
-      {/* SECTION E: FINAL CTA ("THE CUP IS WAITING.") */}
+      {/* SECTION E: FINAL CTA */}
       <section className="relative py-20 sm:py-28 px-4 sm:px-8 lg:px-16 bg-[#B8F34A] text-[#090909] overflow-hidden">
         <div className="max-w-[1320px] mx-auto grid grid-cols-1 lg:grid-cols-12 items-center gap-10 relative z-10">
           <div className="lg:col-span-8 space-y-6">
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#090909]/80">
-              BETTERINU SUPER CUP 2026
+            <p className="text-xs font-black tracking-[0.24em] text-[#090909]/80">
+              Betterinu Football league 2026
             </p>
             <h2 className="font-display text-6xl sm:text-8xl lg:text-9xl font-black uppercase tracking-tight leading-[0.86] text-[#090909]">
-              THE CUP IS WAITING.
+              Follow the league
             </h2>
-            <p className="text-base sm:text-xl font-bold text-[#090909]/85 max-w-xl leading-relaxed">
-              Every match writes a story. Every goal brings you closer to glory.
-            </p>
 
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center gap-4">
               <BettyKickButton
@@ -402,7 +399,7 @@ export function BelowFoldSections() {
             <div className="relative w-56 sm:w-72 lg:w-80">
               <img
                 src={BETTY_MASCOT_URL}
-                alt="Betty Mascot — BetterInU Super Cup"
+                alt="Betty Mascot — Betterinu Football league"
                 referrerPolicy="no-referrer"
                 className="w-full h-auto object-contain drop-shadow-[0_18px_28px_rgba(9,9,9,0.35)]"
               />
@@ -415,8 +412,8 @@ export function BelowFoldSections() {
       <footer className="bg-[#090909] border-t border-white/10 py-10 px-4 sm:px-8 lg:px-16 text-xs text-[#9AA69B]">
         <div className="max-w-[1320px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="font-display text-xl font-black uppercase text-[#B8F34A]">
-              BETTERINU SUPER CUP
+            <span className="font-display text-xl font-black text-[#B8F34A]">
+              Betterinu Football league
             </span>
           </div>
 

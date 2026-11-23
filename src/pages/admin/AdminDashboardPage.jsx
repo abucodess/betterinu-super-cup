@@ -544,7 +544,7 @@ export function AdminDashboardPage() {
                 <Input
                   label="Tournament Name"
                   name="name"
-                  defaultValue={tournament?.name || 'BetterInU Super Cup'}
+                  defaultValue={tournament?.name || 'Betterinu Football league'}
                   required
                 />
                 <Input

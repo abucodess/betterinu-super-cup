@@ -65,7 +65,7 @@ export function PublicLayout() {
             <BrandLogo size="sm" />
             <div className="min-w-0">
               <span className="font-extrabold text-sm tracking-tight text-[#F4F7F2] block leading-none truncate group-hover:text-[#FFC600] transition-colors">
-                BetterInU League
+                Betterinu Football league
               </span>
               <span className="text-[11px] font-semibold text-[#FFC600] block mt-1">
                 2026 Official Hub
@@ -178,9 +178,9 @@ export function PublicLayout() {
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#9AA69B]">
-                <span>BetterInU League</span>
-                <ChevronRight className="w-3 h-3 text-[#6E7A70]" />
-                <span className="text-[#FFC600] font-bold truncate">
+                <span className="truncate">Betterinu Football league</span>
+                <ChevronRight className="w-3 h-3 shrink-0 text-[#6E7A70]" aria-hidden="true" />
+                <span className="text-[#FFC600] font-bold shrink-0">
                   {currentPage.label}
                 </span>
               </div>
@@ -222,7 +222,7 @@ export function PublicLayout() {
                   <BrandLogo size="sm" />
                   <div>
                     <span className="font-extrabold text-sm text-[#F4F7F2] block leading-none">
-                      BetterInU League
+                      Betterinu Football league
                     </span>
                     <span className="text-[10px] font-semibold text-[#FFC600]">
                       Official Tournament Hub
