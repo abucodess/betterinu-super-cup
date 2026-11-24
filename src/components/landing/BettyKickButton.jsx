@@ -164,11 +164,10 @@ export function BettyKickButton({
     lg: { width: 'w-[195px] sm:w-[215px]', height: 'h-[42px] sm:h-[44px]', text: 'text-xs' },
   }[size] || { width: 'w-[165px] sm:w-[180px]', height: 'h-[40px] sm:h-[42px]', text: 'text-[11px] sm:text-xs' };
 
-  // Transparent button styling with golden yellow & white accents
-  const variantClasses =
-    variant === 'dark'
-      ? 'bg-transparent text-[#080808] border-2 border-[#080808] hover:bg-[#080808]/10 shadow-[0_6px_18px_rgba(0,0,0,0.12)]'
-      : 'bg-black/25 text-white border-2 border-[#FFC600] hover:bg-[#FFC600]/20 hover:border-white backdrop-blur-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.28)]';
+  const variantClasses = {
+    dark: 'bg-transparent text-[#080808] border-2 border-[#080808] hover:bg-[#080808]/10 shadow-[0_6px_18px_rgba(0,0,0,0.12)]',
+    hero: 'border-2 border-[#164821] bg-gradient-to-b from-[#C6FF36] to-[#A8EA16] text-[#102B15] normal-case shadow-[inset_0_0_0_2px_#CFFF68,0_5px_0_#148541,0_7px_0_#164821,0_10px_16px_rgba(0,0,0,0.30)] hover:from-[#D6FF66]',
+  }[variant] || 'bg-black/25 text-white border-2 border-[#FFC600] hover:bg-[#FFC600]/20 hover:border-white backdrop-blur-[3px] shadow-[0_8px_24px_rgba(0,0,0,0.28)]';
 
   // Compute small Mini Betty's body transform across phases
   const getBettyBodyStyle = () => {

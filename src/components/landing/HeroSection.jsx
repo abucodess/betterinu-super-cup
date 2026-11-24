@@ -60,26 +60,15 @@ export function HeroSection() {
       id="hero"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative h-full w-full bg-[#001AFF] text-white overflow-hidden select-none flex flex-col justify-between"
+      className="relative h-full w-full bg-[#001AFF] bg-[radial-gradient(ellipse_at_48%_34%,#3D5CFF_0%,#142EFF_34%,#0819C4_64%,#050B67_100%)] text-white overflow-hidden select-none flex flex-col justify-between max-sm:[--mobile-portrait-width:min(160vw,88dvh)]"
     >
-      {/* Top Tri-Color Championship Ribbon (Blue • Yellow • Red) */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-0 inset-x-0 h-1.5 z-40 flex"
-      >
-        <span className="flex-1 bg-[#FFC600]" />
-        <span className="flex-1 bg-[#FF1E27]" />
-        <span className="flex-1 bg-[#001AFF]" />
-      </div>
-
-      {/* Top-Left Responsive Betterinu Football league Logo (Uncut) */}
-      <div className="pointer-events-auto absolute top-4 left-9 sm:top-6 sm:left-14 md:top-7 md:left-16 z-30 overflow-visible">
-        <BrandLogo size="hero" to="/" />
+      <div className="pointer-events-auto absolute top-[calc((100%_-_var(--mobile-portrait-width)*0.78)/2)] max-sm:-translate-y-1/2 left-1/2 z-30 -translate-x-1/2 overflow-visible sm:top-6 sm:left-14 sm:translate-x-0 md:top-7 md:left-16">
+        <BrandLogo size="hero" to="/" className="max-sm:h-[clamp(5.25rem,24dvh,10.5rem)]" />
       </div>
 
       {/* Top-Right Curved Vibrant Red Corner Shape */}
       <div
-        className="pointer-events-none absolute top-0 right-0 w-[52%] sm:w-[36%] h-[34%] sm:h-[46%] bg-[#FF1E27] z-0 transition-transform duration-500"
+        className="pointer-events-none absolute top-0 right-0 w-[36%] h-[46%] bg-[#FF1E27] bg-[radial-gradient(ellipse_at_top_right,#FF6060_0%,#FF1E27_50%,#B50B35_100%)] z-0 transition-transform duration-500"
         style={{
           clipPath: 'ellipse(92% 88% at 100% 0%)',
         }}
@@ -87,7 +76,7 @@ export function HeroSection() {
 
       {/* Bottom-Right Curved Deep Emerald Corner Shape */}
       <div
-        className="pointer-events-none absolute bottom-0 right-0 w-[55%] sm:w-[38%] h-[38%] sm:h-[52%] bg-[#00B140] z-0 transition-transform duration-500"
+        className="pointer-events-none absolute bottom-0 right-0 w-[38%] h-[52%] bg-[#00B140] bg-[radial-gradient(ellipse_at_bottom_right,#20D967_0%,#00A74A_52%,#005A53_100%)] z-0 transition-transform duration-500"
         style={{
           clipPath: 'ellipse(92% 88% at 100% 100%)',
         }}
@@ -96,7 +85,7 @@ export function HeroSection() {
       {/* Left Infinite Looping Vertical Marquee Rail ("Betterinu Football league 2026") */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-2.5 sm:left-6 inset-y-0 z-30 overflow-hidden"
+        className="pointer-events-none absolute sm:left-6 inset-y-0 z-30 overflow-hidden max-sm:hidden"
       >
         <div
           ref={leftTrackRef}
@@ -124,7 +113,7 @@ export function HeroSection() {
       {/* Right Infinite Looping Vertical Marquee Rail ("Betterinu Football league 2026") */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute right-2.5 sm:right-6 inset-y-0 z-30 overflow-hidden"
+        className="pointer-events-none absolute sm:right-6 inset-y-0 z-30 overflow-hidden max-sm:hidden"
       >
         <div
           ref={rightTrackRef}
@@ -146,8 +135,9 @@ export function HeroSection() {
       </div>
 
       {/* Keep all three players in frame as the hero changes size. */}
-      <picture className="pointer-events-none absolute inset-0 z-10 block overflow-hidden bg-black lg:inset-x-12 lg:top-[10%] lg:bg-transparent">
+      <picture className="pointer-events-none absolute inset-0 z-10 block overflow-hidden lg:inset-x-12 lg:top-[10%]">
         <source media="(min-width: 1024px)" srcSet="/assets/landing-captains.png" />
+        {/* On phones, crop the portrait at source row 1080. On tablets, offset the 161px below the boots. */}
         <img
           src="/assets/landing-captains-portrait.png"
           alt="Three football captains in their team kits"
@@ -155,7 +145,7 @@ export function HeroSection() {
           style={{
             '--hero-parallax-x': `${parallax.x}px`,
           }}
-          className="block h-full w-full object-contain lg:translate-x-[var(--hero-parallax-x)] lg:object-bottom lg:drop-shadow-[0_20px_45px_rgba(0,0,0,0.35)] lg:transition-transform lg:duration-200 lg:ease-[cubic-bezier(0.16,1,0.3,1)]"
+          className="block h-full w-full object-contain object-bottom max-sm:absolute max-sm:bottom-[calc(var(--mobile-portrait-width)*-0.6291)] max-sm:left-1/2 max-sm:h-auto max-sm:w-[var(--mobile-portrait-width)] max-sm:max-w-none max-sm:-translate-x-1/2 sm:max-lg:translate-y-[min(9.63%,17.11vw)] max-lg:[mask:url('/assets/landing-captains-portrait-mask.png')_center_bottom/contain_no-repeat] lg:translate-x-[var(--hero-parallax-x)] lg:drop-shadow-[0_20px_45px_rgba(0,0,0,0.35)] lg:transition-transform lg:duration-200 lg:ease-[cubic-bezier(0.16,1,0.3,1)]"
         />
       </picture>
 
@@ -163,7 +153,7 @@ export function HeroSection() {
       <div className="pointer-events-none relative z-20 flex-1 flex flex-col justify-end pb-6 sm:pb-[3.5vh] px-8 sm:px-12 md:px-16">
         <div className="w-full max-w-[min(92vw,151vh)] mx-auto flex flex-col">
           {/* Title scales with viewport height on tall monitors. */}
-          <div className="mb-12 sm:mb-[11.3vh] flex flex-col">
+          <div className="flex flex-col max-sm:sr-only sm:mb-[11.3vh]">
             {/* Giant Line 1 (Aligned With Top-Left Logo & Spans Across Chest to Right Sleeve Armband) */}
             <div className="self-start pl-[1%] sm:pl-[4.5%] md:pl-[6%]">
               <h1
@@ -215,7 +205,9 @@ export function HeroSection() {
           <div className="flex justify-center">
             <BettyKickButton
               to="/public"
-              ariaLabel="Kickoff — explore the tournament"
+              variant="hero"
+              size="lg"
+              label="Enter the Arena"
               className="pointer-events-auto"
             />
           </div>
