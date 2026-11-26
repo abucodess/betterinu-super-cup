@@ -1,216 +1,171 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  AlertCircle,
-  ArrowLeft,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  ShieldCheck,
-} from 'lucide-react';
-import { BrandLogo } from '../../components/shared/BrandLogo';
-import { authApi } from '../../services/api/auth.api';
-import { setCredentials } from '../../store/slices/auth.slice';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
+import { AlertCircle, ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole } from 'lucide-react';
+import { useArenaViewport } from '../../hooks/useArenaViewport';
+import { useAuth } from '../../hooks/useAuth';
+import { getStaffDashboard } from '../../utils/staffRoles';
+import { StaffRoleSelection, staffPortals } from './StaffRoleSelection';
+import './staff-login.css';
 
-export function LoginPage() {
-  const [email, setEmail] = useState(() => {
-    try {
-      return localStorage.getItem('supercup_remembered_email') || '';
-    } catch {
-      return '';
-    }
-  });
+const rememberedEmailKey = 'supercup_remembered_email';
+
+function readRememberedEmail() {
+  try {
+    return localStorage.getItem(rememberedEmailKey) || '';
+  } catch {
+    return '';
+  }
+}
+
+function loginError(error) {
+  if (error.code === 'invalid_credentials' || error.message === 'Invalid login credentials') {
+    return 'The email or password is incorrect.';
+  }
+
+  if (['user_banned', 'email_not_confirmed', 'staff_access_unavailable'].includes(error.code)) {
+    return 'Staff access is unavailable for this account. Contact your league administrator.';
+  }
+
+  if (error.status === 429) return 'Too many sign-in attempts. Wait a moment and try again.';
+  if (error.name === 'AuthRetryableFetchError' || error.status === 0 || error.status >= 500) {
+    return 'Could not connect to the sign-in service. Check your connection and try again.';
+  }
+  return 'Sign-in could not be completed. Try again.';
+}
+
+function StaffLoginForm({ portal, login }) {
+  const [email, setEmail] = useState(readRememberedEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { isAuthenticated, role } = useSelector((state) => state.auth);
+  const heading = useRef(null);
+  const emailInput = useRef(null);
+  const passwordInput = useRef(null);
+  const title = portal.id === 'admin' ? 'Administrator Login' : 'Referee Login';
 
   useEffect(() => {
-    if (isAuthenticated && role) {
-      if (role === 'super_admin') navigate('/admin', { replace: true });
-      else if (role === 'manager') navigate('/manager', { replace: true });
-      else if (role === 'referee') navigate('/referee', { replace: true });
-    }
-  }, [isAuthenticated, role, navigate]);
+    heading.current?.focus({ preventScroll: true });
+  }, []);
 
-  const validateEmail = (value) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-  };
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (isSubmitting) return;
+    setError(null);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    const trimmedEmail = email.trim().toLowerCase();
-    if (!validateEmail(trimmedEmail)) {
-      setError('Enter a valid email address.');
+    const address = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+      setError({ text: 'Enter a valid email address.', field: 'email' });
+      emailInput.current.focus();
       return;
     }
-    if (!password || password.length < 6) {
-      setError('Enter your password.');
+    if (password.length < 6) {
+      setError({ text: 'Enter your password.', field: 'password' });
+      passwordInput.current.focus();
       return;
     }
 
     setIsSubmitting(true);
-
     try {
-      const { user, session, role: userRole, profile } = await authApi.signIn(
-        trimmedEmail,
-        password
-      );
-
+      await login(address, password);
       try {
-        localStorage.setItem('supercup_remembered_email', trimmedEmail);
+        localStorage.setItem(rememberedEmailKey, address);
       } catch {
-        // Ignore storage errors
+        // Signing in works when storage is unavailable.
       }
-
-      dispatch(setCredentials({ user, session, role: userRole, profile }));
-
-      if (userRole === 'super_admin') navigate('/admin', { replace: true });
-      else if (userRole === 'manager') navigate('/manager', { replace: true });
-      else if (userRole === 'referee') navigate('/referee', { replace: true });
-      else navigate('/public', { replace: true });
-    } catch (err) {
-      setError(
-        err.message === 'Invalid login credentials'
-          ? 'Invalid email or password.'
-          : err.message || 'Sign in failed.'
-      );
+    } catch (failure) {
+      setError({ text: loginError(failure) });
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-[#090909] text-[#F4F7F2] flex flex-col justify-center items-center p-5 relative overflow-hidden">
-      {/* Subtle Ambient Color Glows */}
-      <div
-        className="pointer-events-none absolute -top-24 -left-24 w-80 h-80 rounded-full bg-[#001AFF]/20 blur-3xl"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-[#FF1E27]/15 blur-3xl"
-        aria-hidden="true"
-      />
-
-      {/* Top-Left Back Button */}
-      <div className="fixed top-5 left-5 z-20">
-        <Link
-          to="/public"
-          aria-label="Back to tournament"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#141414] border border-[#303030] text-xs font-bold text-[#F4F7F2] hover:bg-[#1C1C1C] hover:border-[#FFC600]/60 hover:text-[#FFC600] transition-all shadow-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to League Hub</span>
-        </Link>
+    <div className="staff-form-shell">
+      <div className="staff-form-art" data-role={portal.id}>
+        <img src={portal.image} width="400" height="236" alt="" />
       </div>
-
-      {/* Sleek Dark Sign-In Card */}
-      <div className="w-full max-w-[400px] rounded-2xl bg-[#141414] border border-[#2A2A2A] shadow-[0_24px_60px_rgba(0,0,0,0.75)] overflow-hidden animate-slide-up relative z-10">
-        {/* Top Tri-Color Championship Strip */}
-        <div className="h-1.5 w-full flex">
-          <span className="flex-1 bg-[#001AFF]" />
-          <span className="flex-1 bg-[#FFC600]" />
-          <span className="flex-1 bg-[#FF1E27]" />
-        </div>
-
-        <div className="p-6 sm:p-8 space-y-6">
-          {/* Brand Header */}
-          <div className="flex flex-col items-center text-center space-y-2.5">
-            <BrandLogo size="lg" />
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFC600]/15 border border-[#FFC600]/45 text-[10px] font-black uppercase tracking-wider text-[#FFC600]">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#FFC600]" />
-              Authorized Officials Only
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-[#F4F7F2]">
-              Staff Sign In
-            </h1>
-            <p className="text-xs font-medium text-[#9AA69B]">
-              Access Admin, Club Manager, or Match Referee consoles
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-4" noValidate>
+      <div className="staff-form-content">
+        <Link className="staff-login-text-link" to="/login" replace><ArrowLeft size={16} aria-hidden="true" /> Change Role</Link>
+        <h1 ref={heading} tabIndex={-1}>{title}</h1>
+        <p>Use the email and password for your staff account.</p>
+        <form onSubmit={handleSubmit} noValidate>
+          <fieldset disabled={isSubmitting} aria-busy={isSubmitting}>
             {error && (
-              <div
-                role="alert"
-                className="px-3.5 py-2.5 rounded-xl bg-[#FF1E27]/15 border border-[#FF1E27]/45 flex items-center gap-2 text-[#FF6B72] text-xs font-semibold"
-              >
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{error}</span>
+              <div className="staff-form-error" role="alert" id="staff-login-error">
+                <AlertCircle size={17} aria-hidden="true" />{error.text}
               </div>
             )}
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor="login-email-input"
-                className="block text-xs font-semibold text-[#F4F7F2]"
-              >
-                Email Address
-              </label>
+            <div className="staff-form-field">
+              <label htmlFor="staff-email">{portal.id === 'admin' ? 'Admin email' : 'Staff email'}</label>
               <input
-                id="login-email-input"
-                type="email"
-                placeholder="official@betterinu.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-                aria-label="Email address"
-                className="w-full bg-[#202020] border border-[#303030] rounded-xl px-3.5 py-2.5 text-sm text-[#F4F7F2] placeholder-[#6E7A70] focus:outline-none focus:border-[#FFC600] focus:ring-2 focus:ring-[#FFC600]/20 transition-all"
+                ref={emailInput} id="staff-email" name="email" type="email" autoComplete="username" required
+                value={email} onChange={(event) => setEmail(event.target.value)}
+                aria-invalid={error?.field === 'email' || undefined}
+                aria-describedby={error?.field === 'email' ? 'staff-login-error' : undefined}
               />
             </div>
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor="login-password-input"
-                className="block text-xs font-semibold text-[#F4F7F2]"
-              >
-                Password
-              </label>
-              <div className="relative">
+            <div className="staff-form-field">
+              <label htmlFor="staff-password">Password</label>
+              <div className="staff-password-control">
                 <input
-                  id="login-password-input"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                  aria-label="Password"
-                  className="w-full bg-[#202020] border border-[#303030] rounded-xl pl-3.5 pr-10 py-2.5 text-sm text-[#F4F7F2] placeholder-[#6E7A70] focus:outline-none focus:border-[#FFC600] focus:ring-2 focus:ring-[#FFC600]/20 transition-all"
+                  ref={passwordInput} id="staff-password" name="password"
+                  type={showPassword ? 'text' : 'password'} autoComplete="current-password" required
+                  value={password} onChange={(event) => setPassword(event.target.value)}
+                  aria-invalid={error?.field === 'password' || undefined}
+                  aria-describedby={error?.field === 'password' ? 'staff-login-error' : undefined}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[#9AA69B] hover:text-[#F4F7F2] transition-colors"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                  {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                 </button>
               </div>
             </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full rounded-xl bg-[#001AFF] hover:bg-[#1B3BFF] text-[#FFFFFF] py-3 px-4 flex items-center justify-center gap-2 text-sm font-bold transition-all shadow-[0_8px_24px_rgba(0,26,255,0.4)] border border-[#3B82F6]/40 disabled:opacity-50"
-              >
-                <span>{isSubmitting ? 'Signing in...' : 'Sign In to Portal'}</span>
-                <ArrowRight className="w-4 h-4 text-[#FFC600]" />
-              </button>
-            </div>
-          </form>
-        </div>
+            <button type="submit" className="staff-login-primary">
+              {isSubmitting ? 'Signing in…' : `Login as ${portal.label}`}<ArrowRight size={17} aria-hidden="true" />
+            </button>
+          </fieldset>
+        </form>
       </div>
+    </div>
+  );
+}
+
+export function LoginPage() {
+  useArenaViewport();
+  const [query] = useSearchParams();
+  const portal = staffPortals.find(({ id }) => id === query.get('portal'));
+  const [active, setActive] = useState(() => portal ? staffPortals.indexOf(portal) : 0);
+  const lobbyHeading = useRef(null);
+  const previousPortal = useRef(null);
+  const { isAuthenticated, role, login } = useAuth();
+  const dashboard = isAuthenticated && getStaffDashboard(role);
+
+  useLayoutEffect(() => {
+    if (portal || previousPortal.current) window.scrollTo(0, 0);
+    if (!portal && previousPortal.current) lobbyHeading.current?.focus({ preventScroll: true });
+    previousPortal.current = portal;
+  }, [portal]);
+
+  if (dashboard) return <Navigate to={dashboard} replace />;
+
+  return (
+    <div className="staff-login">
+      <header className="staff-login-header">
+        <Link className="staff-login-text-link" to="/public"><ArrowLeft size={17} aria-hidden="true" /> Back to Home</Link>
+      </header>
+      <main className="staff-login-main">
+        <img className="staff-login-logo" src="/assets/betterinu-league-logo.webp" width="900" height="524" alt="Betterinu Football League" />
+        {portal ? <StaffLoginForm key={portal.id} portal={portal} login={login} /> : (
+          <div className="staff-login-selection">
+            <div className="staff-login-heading">
+              <h1 ref={lobbyHeading} tabIndex={-1}>Staff Login</h1>
+              <p>Choose your staff portal.</p>
+            </div>
+            <StaffRoleSelection active={active} onChange={setActive} />
+          </div>
+        )}
+        <p className="staff-login-notice"><LockKeyhole size={14} aria-hidden="true" /> Authorized Staff Only</p>
+      </main>
     </div>
   );
 }

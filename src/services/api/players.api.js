@@ -49,6 +49,17 @@ export function normalizePlayerRecord(row) {
 }
 
 export const playersApi = {
+  async getDraftCounts() {
+    const [total, unassigned] = await Promise.all([
+      supabase.from('players').select('id', { head: true, count: 'exact' }),
+      supabase.from('players').select('id', { head: true, count: 'exact' }).is('team_id', null),
+    ]);
+
+    const error = total.error || unassigned.error;
+    if (error) throw new Error(error.message);
+    return { total: total.count, unassigned: unassigned.count };
+  },
+
   async getPlayers(filter = {}) {
     let query = supabase
       .from('players')

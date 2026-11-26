@@ -1,15 +1,15 @@
 import React from 'react';
 import { HeroSection } from '../../components/landing/HeroSection';
+import { useArenaViewport } from '../../hooks/useArenaViewport';
 
 export function LandingPage() {
+  useArenaViewport();
+
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#001AFF] text-[#F4F7F2] overflow-hidden">
-      <main className="h-full w-full">
-        <HeroSection />
-      </main>
-    </div>
+    <main className="championship-landing">
+      <HeroSection />
+    </main>
   );
 }
 
 export default LandingPage;
-

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Shield,
   Users,
   Search,
   Maximize2,
@@ -10,8 +10,11 @@ import {
   Radio,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
+import { ModalDialog } from '../../components/ui/ModalDialog';
 import { CircularRing } from '../../components/ui/CircularRing';
-import { BrandLogo } from '../../components/shared/BrandLogo';
+import { ArenaHeading, ArenaState, ClubCrest } from '../../components/shared/ArenaUI';
+import { ClubBrowser } from '../../features/teams/ClubBrowser';
+import { darkHorseClubId } from '../../features/teams/officialCrests';
 import { PlayerCard } from '../../features/players/PlayerCard';
 import { PlayerProfileModal } from '../../features/players/PlayerProfileModal';
 import { teamsApi } from '../../services/api/teams.api';
@@ -23,15 +26,44 @@ import { soundEffects } from '../../utils/soundEffects';
 
 export function TeamsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-  const [viewMode, setViewMode] = useState('live_teams'); // 'live_teams' | 'cards'
-  const [selectedTeamFilter, setSelectedTeamFilter] = useState('ALL');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isBigScreen, setIsBigScreen] = useState(false);
+  const requestedView = searchParams.get('view');
+  const viewMode = isBigScreen || requestedView === 'draft' ? 'draft' : requestedView === 'players' ? 'players' : 'clubs';
+
+  function setViewMode(view) {
+    setIsBigScreen(false);
+    const params = new URLSearchParams(searchParams);
+    if (view === 'clubs') params.delete('view');
+    else params.set('view', view);
+    setSearchParams(params, { preventScrollReset: true });
+  }
+
+  function selectClub(id) {
+    if (id === darkHorseClubId) {
+      navigate(`/public/teams/${id}`);
+      return;
+    }
+    const params = new URLSearchParams(searchParams);
+    params.set('club', id);
+    setSearchParams(params, { replace: true, preventScrollReset: true });
+  }
+  const selectedTeamFilter = searchParams.get('team') || 'ALL';
+
+  function setSelectedTeamFilter(team) {
+    const params = new URLSearchParams(searchParams);
+    if (team === 'ALL') params.delete('team');
+    else params.set('team', team);
+    setSearchParams(params, { replace: true, preventScrollReset: true });
+  }
+
   const [positionFilter, setPositionFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  // Live Presentation / Big Screen State
-  const [isBigScreen, setIsBigScreen] = useState(false);
+  // Live presentation state
   const [soundEnabled] = useState(true);
   const [spotlightReveal, setSpotlightReveal] = useState(null);
   const [latestAssignment, setLatestAssignment] = useState(null);
@@ -40,22 +72,29 @@ export function TeamsPage() {
   const prevTeamMapRef = useRef(null);
   const spotlightTimerRef = useRef(null);
 
-  const { data: teams = [], isLoading: loadingTeams } = useQuery({
+  const { data: teams = [], isLoading: loadingTeams, isError: teamsError, refetch: retryTeams } = useQuery({
     queryKey: ['teams'],
     queryFn: () => teamsApi.getTeams(),
     refetchInterval: 4000,
   });
 
-  const { data: players = [], isLoading: loadingPlayers } = useQuery({
+  const { data: players = [], isLoading: loadingPlayers, isError: playersError, refetch: retryPlayers } = useQuery({
     queryKey: ['players'],
     queryFn: () => playersApi.getPlayers(),
     refetchInterval: 2000,
   });
 
-  const { data: matches = [] } = useQuery({
+  const { data: matches = [], isPending: loadingMatches, isError: matchesError } = useQuery({
     queryKey: ['matches'],
     queryFn: () => matchesApi.getMatches(),
   });
+
+  const { data: standings = [] } = useQuery({
+    queryKey: ['standings'],
+    queryFn: () => standingsApi.getStandings(),
+  });
+
+  const selectedClub = teams.find((team) => team.id === searchParams.get('club')) || teams[0];
 
   const { data: allEvents = [] } = useQuery({
     queryKey: ['all_match_events'],
@@ -161,13 +200,12 @@ export function TeamsPage() {
       }
     });
 
-    return () => {
-      unsubscribe();
-      if (spotlightTimerRef.current) {
-        clearTimeout(spotlightTimerRef.current);
-      }
-    };
+    return unsubscribe;
   }, [queryClient, players, teams, soundEnabled]);
+
+  useEffect(() => () => {
+    clearTimeout(spotlightTimerRef.current);
+  }, []);
 
   const unassignedPlayers = useMemo(
     () => players.filter((p) => !p.team_id),
@@ -175,8 +213,6 @@ export function TeamsPage() {
   );
 
   const assignedCount = players.length - unassignedPlayers.length;
-  const progressPercent =
-    players.length > 0 ? Math.round((assignedCount / players.length) * 100) : 0;
 
   const filteredPlayers = useMemo(() => {
     return players.filter((p) => {
@@ -194,33 +230,6 @@ export function TeamsPage() {
       return matchesTeam && matchesPos && matchesSearch;
     });
   }, [players, selectedTeamFilter, positionFilter, searchQuery]);
-
-  const TEAM_PALETTE = [
-    {
-      badgeBg: 'bg-[#001AFF]',
-      badgeText: 'text-[#FFFFFF]',
-      topBar: 'bg-[#001AFF]',
-      headerBg: 'bg-[#001AFF]/15',
-      border: 'border-[#001AFF]/40 hover:border-[#001AFF]',
-      ringTone: 'default',
-    },
-    {
-      badgeBg: 'bg-[#FFC600]',
-      badgeText: 'text-[#090909]',
-      topBar: 'bg-[#FFC600]',
-      headerBg: 'bg-[#FFC600]/10',
-      border: 'border-[#FFC600]/40 hover:border-[#FFC600]',
-      ringTone: 'default',
-    },
-    {
-      badgeBg: 'bg-[#FF1E27]',
-      badgeText: 'text-[#FFFFFF]',
-      topBar: 'bg-[#FF1E27]',
-      headerBg: 'bg-[#FF1E27]/15',
-      border: 'border-[#FF1E27]/40 hover:border-[#FF1E27]',
-      ringTone: 'default',
-    },
-  ];
 
   const renderLiveTeamsBoard = () => (
     <div className="space-y-5 animate-slide-up">
@@ -261,7 +270,7 @@ export function TeamsPage() {
 
       {/* Live Team Rosters (3 Columns on Desktop / Big Screen, Stacked on Mobile) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {teams.map((team, teamIdx) => {
+        {teams.map((team) => {
           const teamRoster = players.filter((p) => p.team_id === team.id);
           const activeRoster = teamRoster.filter(
             (p) => !p.is_non_player && p.position !== 'SUP' && Number(p.jersey_number) !== 0
@@ -270,28 +279,20 @@ export function TeamsPage() {
             (p) => p.is_non_player || p.position === 'SUP' || Number(p.jersey_number) === 0
           );
           const openSlotsCount = Math.max(0, 5 - activeRoster.length);
-          const palette = TEAM_PALETTE[teamIdx % TEAM_PALETTE.length];
 
           return (
             <div
               key={team.id}
               data-testid={`public-team-board-${team.short_code}`}
-              style={{ animationDelay: `${teamIdx * 80}ms` }}
-              className={`animate-slide-up rounded-2xl bg-[#141414] border ${palette.border} transition-all duration-300 overflow-hidden flex flex-col shadow-sm`}
+              style={{ '--club-accent': team.color_code || '#626fff' }}
+              className="arena-panel arena-draft-club overflow-hidden flex flex-col"
             >
-              {/* Top Club Color Strip (Blue / Yellow / Red) */}
-              <div className={`h-1.5 w-full ${palette.topBar}`} />
-
               {/* Team Header with SVG CircularRing Progress */}
               <div
-                className={`p-4 sm:p-5 border-b border-[#262626] ${palette.headerBg} flex items-center justify-between gap-3`}
+                className="arena-draft-club-head p-4 sm:p-5 border-b border-[#262626] flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`w-11 h-11 rounded-xl ${palette.badgeBg} ${palette.badgeText} flex items-center justify-center font-black text-xs shrink-0 shadow-xs`}
-                  >
-                    {team.short_code}
-                  </div>
+                  <ClubCrest club={team} />
                   <div className="min-w-0">
                     <h2 className="text-base sm:text-lg font-black text-[#F4F7F2] truncate leading-tight">
                       {team.name}
@@ -313,7 +314,6 @@ export function TeamsPage() {
                   size={52}
                   strokeWidth={4.5}
                   label={`${activeRoster.length}/5`}
-                  tone={palette.ringTone}
                 />
               </div>
 
@@ -410,7 +410,7 @@ export function TeamsPage() {
 
         {unassignedPlayers.length === 0 ? (
           <div className="py-5 text-center text-xs sm:text-sm text-[#FFC600] font-extrabold bg-[#1C1C1C] rounded-xl border border-[#FFC600]/40 animate-fade-in">
-            All {players.length} custom player cards are assigned to their squads!
+            {players.length ? 'All cards have been assigned to clubs.' : 'No players have been published.'}
           </div>
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2.5 justify-items-center">
@@ -434,135 +434,46 @@ export function TeamsPage() {
     </div>
   );
 
+  if (viewMode === 'clubs' && searchParams.get('club') === darkHorseClubId) {
+    return <Navigate to={`/public/teams/${darkHorseClubId}`} replace />;
+  }
+
   return (
     <div
+      onKeyDown={(event) => {
+        if (isBigScreen && event.key === 'Escape' && !event.target.closest('dialog')) setIsBigScreen(false);
+      }}
       className={
         isBigScreen
-          ? 'fixed inset-0 z-50 bg-[#090909] text-[#F4F7F2] overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5'
+          ? 'arena-draft-big fixed inset-0 z-50 bg-[#090909] text-[#F4F7F2] overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5'
           : 'space-y-4 sm:space-y-5 pb-6'
       }
     >
-      {/* Electric Blue, Golden Yellow & Crimson Red Hero Header Card */}
-      <div className="relative rounded-2xl bg-gradient-to-r from-[#001AFF] via-[#0624C4] to-[#081970] border border-[#3B82F6]/40 text-[#FFFFFF] p-5 sm:p-6 shadow-[0_14px_38px_rgba(0,26,255,0.28)] overflow-hidden space-y-4">
-        {/* Top Tri-Color Accent Ribbon */}
-        <div className="absolute top-0 inset-x-0 h-1.5 flex">
-          <span className="flex-1 bg-[#FFC600]" />
-          <span className="flex-1 bg-[#FF1E27]" />
-          <span className="flex-1 bg-[#001AFF]" />
-        </div>
+      <ArenaHeading title="Teams & Draft" description={viewMode === 'draft' ? `${assignedCount} of ${players.length} members assigned across ${teams.length} clubs` : 'Browse the clubs, squads and 5-a-side formations.'}>
+        <button type="button" className="arena-button" onClick={() => setIsBigScreen(!isBigScreen)}
+          aria-pressed={isBigScreen}>
+          {isBigScreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+          {isBigScreen ? 'Exit Big Screen' : 'Big Screen'}
+        </button>
+      </ArenaHeading>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-          <div className="flex items-center gap-3.5">
-            <BrandLogo size="md" />
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#FF1E27] text-[#FFFFFF] text-[10px] font-black uppercase tracking-wider mb-1">
-                <Radio className="w-3 h-3 text-[#FFC600] animate-pulse" />
-                Live Presentation Board
-              </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#FFFFFF]">
-                Teams &amp; Live Draw
-              </h1>
-              <p className="text-xs font-semibold text-[#DBEAFE] tabular-nums">
-                <strong className="text-[#FFC600]">{assignedCount}</strong> of {players.length}{' '}
-                members assigned across 3 official clubs
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between sm:justify-end gap-3">
-            {/* Stacked Circular Player Portraits */}
-            <div className="flex items-center -space-x-2.5">
-              {players.slice(0, 4).map((p) => (
-                <div
-                  key={p.id}
-                  className="w-9 h-9 rounded-full bg-[#141414] border-2 border-[#FFC600] overflow-hidden shrink-0"
-                >
-                  {p.photo_url ? (
-                    <img
-                      src={p.photo_url}
-                      alt={p.name}
-                      className="w-full h-full object-cover object-top"
-                    />
-                  ) : (
-                    <span className="w-full h-full flex items-center justify-center text-[10px] font-black text-[#FFC600]">
-                      {p.name?.slice(0, 2)}
-                    </span>
-                  )}
-                </div>
-              ))}
-              <div className="w-9 h-9 rounded-full bg-[#FFC600] border-2 border-[#090909] flex items-center justify-center text-[10px] font-black text-[#090909] tabular-nums">
-                +{players.length}
-              </div>
-            </div>
-
-            <CircularRing
-              value={assignedCount}
-              max={Math.max(players.length, 15)}
-              size={56}
-              strokeWidth={5}
-              label={`${progressPercent}%`}
-              tone="onBlue"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Segmented Control Bar + Big Screen Toggle */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-1.5 bg-[#141414] p-1.5 rounded-xl border border-[#262626]">
-          <button
-            type="button"
-            onClick={() => setViewMode('live_teams')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-extrabold transition-all whitespace-nowrap ${
-              viewMode === 'live_teams'
-                ? 'bg-[#001AFF] text-[#FFFFFF] shadow-xs border border-[#3B82F6]/40'
-                : 'text-[#9AA69B] hover:text-[#F4F7F2] hover:bg-[#1C1C1C]'
-            }`}
-          >
-            <Shield className={`w-3.5 h-3.5 ${viewMode === 'live_teams' ? 'text-[#FFC600]' : ''}`} />
-            Live Teams (3)
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('cards')}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-extrabold transition-all whitespace-nowrap ${
-              viewMode === 'cards'
-                ? 'bg-[#001AFF] text-[#FFFFFF] shadow-xs border border-[#3B82F6]/40'
-                : 'text-[#9AA69B] hover:text-[#F4F7F2] hover:bg-[#1C1C1C]'
-            }`}
-          >
-            <Users className={`w-3.5 h-3.5 ${viewMode === 'cards' ? 'text-[#FFC600]' : ''}`} />
-            All Cards ({players.length})
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setIsBigScreen((v) => !v)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FFC600] hover:bg-[#FFD233] text-[#090909] text-xs font-extrabold transition-colors whitespace-nowrap shadow-[0_6px_20px_rgba(255,198,0,0.25)]"
-          >
-            {isBigScreen ? (
-              <>
-                <Minimize2 className="w-3.5 h-3.5 text-[#090909]" />
-                <span>Exit Big Screen</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3.5 h-3.5 text-[#090909]" />
-                <span>Big Screen</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+      {!isBigScreen && <div className="arena-tabs" role="group" aria-label="Teams views">
+        {[
+          ['clubs', 'Club browser'],
+          ['draft', 'Live draft board'],
+          ['players', `All cards (${players.length})`],
+        ].map(([view, label]) => (
+          <button type="button" key={view} aria-pressed={viewMode === view} onClick={() => setViewMode(view)}>{label}</button>
+        ))}
+      </div>}
 
       {/* Filter Ribbon for 'cards' mode */}
-      {viewMode === 'cards' && (
+      {viewMode === 'players' && (
         <div className="space-y-3 animate-fade-in">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             <button
               type="button"
+              aria-pressed={selectedTeamFilter === 'ALL'}
               onClick={() => setSelectedTeamFilter('ALL')}
               className={`shrink-0 px-4 py-2 rounded-xl text-xs font-extrabold border transition-all whitespace-nowrap ${
                 selectedTeamFilter === 'ALL'
@@ -573,6 +484,9 @@ export function TeamsPage() {
               All Players ({players.length})
             </button>
 
+            <button type="button" aria-pressed={selectedTeamFilter === 'UNALLOCATED'}
+              onClick={() => setSelectedTeamFilter('UNALLOCATED')}
+              className="arena-button shrink-0">Unassigned</button>
             {teams.map((team) => {
               const count = players.filter((p) => p.team_id === team.id).length;
               const isSelected = selectedTeamFilter === team.id;
@@ -580,6 +494,7 @@ export function TeamsPage() {
                 <button
                   key={team.id}
                   type="button"
+                  aria-pressed={isSelected}
                   onClick={() => setSelectedTeamFilter(team.id)}
                   className={`shrink-0 px-4 py-2 rounded-xl text-xs font-extrabold border transition-all flex items-center gap-2 whitespace-nowrap ${
                     isSelected
@@ -599,6 +514,7 @@ export function TeamsPage() {
               <Search className="w-4 h-4 text-[#9AA69B] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
+                aria-label="Search by player name or jersey number"
                 placeholder="Search player name or jersey #..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -611,6 +527,7 @@ export function TeamsPage() {
                 <button
                   key={pos}
                   type="button"
+                  aria-pressed={positionFilter === pos}
                   onClick={() => setPositionFilter(pos)}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-colors whitespace-nowrap ${
                     positionFilter === pos
@@ -633,10 +550,17 @@ export function TeamsPage() {
         <Card className="p-8 text-center text-[#9AA69B] rounded-2xl">
           Loading live teams and player cards...
         </Card>
-      ) : viewMode === 'live_teams' ? (
+      ) : teamsError || playersError ? (
+        <ArenaState error onRetry={() => Promise.all([retryTeams(), retryPlayers()])}>Teams and player cards could not be loaded.</ArenaState>
+      ) : viewMode === 'clubs' ? (
+        selectedClub ? <ClubBrowser teams={teams} club={selectedClub} players={players} standings={standings}
+          matches={matches} matchState={loadingMatches ? 'loading' : matchesError ? 'error' : 'ready'} onSelectClub={selectClub} onSelectPlayer={setSelectedPlayer} /> : <ArenaState>No clubs have been published.</ArenaState>
+      ) : viewMode === 'draft' ? (
         renderLiveTeamsBoard()
+      ) : filteredPlayers.length === 0 ? (
+        <ArenaState>No players match the current filters.</ArenaState>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3 justify-items-center animate-slide-up">
+        <div className="arena-player-grid animate-slide-up">
           {filteredPlayers.map((player, idx) => {
             const pTeam = teams.find((t) => t.id === player.team_id) || player.team;
             return (
@@ -648,7 +572,7 @@ export function TeamsPage() {
                 <PlayerCard
                   player={player}
                   team={pTeam}
-                  size="xs"
+                  variant="row"
                   stats={playerStatsMap[player.id] || {}}
                   matchEvents={allEvents.filter((e) => e.player_id === player.id)}
                   teamMatches={matches.filter(
@@ -666,18 +590,9 @@ export function TeamsPage() {
       )}
 
       {/* LIVE DRAFT PICK REVEAL SPOTLIGHT OVERLAY */}
-      {spotlightReveal && (
-        <div
-          onClick={() => setSpotlightReveal(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Live player assignment reveal"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in cursor-pointer"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm rounded-3xl bg-[#141414] border-2 border-[#FFC600] shadow-[0_24px_65px_rgba(0,0,0,0.85)] p-6 text-center space-y-4 animate-spotlight-enter overflow-hidden"
-          >
+      {spotlightReveal && viewMode === 'draft' && (
+        <ModalDialog label="Live player assignment reveal" onDismiss={() => setSpotlightReveal(null)}>
+          <div className="relative p-6 text-center space-y-4 overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-2 flex">
               <span className="flex-1 bg-[#001AFF]" />
               <span className="flex-1 bg-[#FFC600]" />
@@ -687,7 +602,7 @@ export function TeamsPage() {
             <button
               type="button"
               onClick={() => setSpotlightReveal(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#202020] border border-[#303030] text-[#9AA69B] hover:text-[#F4F7F2] flex items-center justify-center"
+              className="absolute top-3 right-3 arena-icon-button"
               aria-label="Dismiss reveal"
             >
               <X className="w-4 h-4" />
@@ -720,7 +635,7 @@ export function TeamsPage() {
               </div>
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
 
       {selectedPlayer && (
@@ -728,7 +643,7 @@ export function TeamsPage() {
           player={selectedPlayer}
           team={teams.find((t) => t.id === selectedPlayer.team_id)}
           stats={playerStatsMap[selectedPlayer.id] || {}}
-          matchEvents={allEvents.filter((e) => e.player_id === selectedPlayer.id)}
+          matchEvents={allEvents}
           teamMatches={matches.filter(
             (m) =>
               m.home_team_id === selectedPlayer.team_id ||

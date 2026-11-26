@@ -13,6 +13,7 @@ import { LiveMatchPage } from '../pages/public/LiveMatchPage';
 import { FixturesPage } from '../pages/public/FixturesPage';
 import { StandingsPage } from '../pages/public/StandingsPage';
 import { TeamsPage } from '../pages/public/TeamsPage';
+import { ClubPage } from '../pages/public/ClubPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
 import { ManagerDashboardPage } from '../pages/manager/ManagerDashboardPage';
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: 'fixtures', element: <FixturesPage /> },
       { path: 'standings', element: <StandingsPage /> },
       { path: 'teams', element: <TeamsPage /> },
+      { path: 'teams/:teamId', element: <ClubPage /> },
     ],
   },
   {

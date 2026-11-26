@@ -1,6 +1,8 @@
 import React from 'react';
 import { X, Heart } from 'lucide-react';
 import { PlayerCard } from './PlayerCard';
+import { ModalDialog } from '../../components/ui/ModalDialog';
+import '../../arena.css';
 import { calculatePlayerProfileMetrics } from '../../utils/tournamentRules';
 
 /**
@@ -14,6 +16,8 @@ export function PlayerProfileModal({
   stats = {},
   matchEvents = [],
   teamMatches = [],
+  statsLoading = false,
+  statsUnavailable = false,
   onClose,
 }) {
   if (!player) return null;
@@ -26,27 +30,18 @@ export function PlayerProfileModal({
   const isGK = metrics?.isGoalkeeper;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3.5 bg-black/85 backdrop-blur-sm animate-fade-in"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="player-profile-modal-title"
-    >
-      <div
-        className="relative w-full max-w-sm rounded-2xl bg-[#141414] border border-[#262626] shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <ModalDialog className="player-sheet" labelledBy="player-profile-modal-title" onDismiss={onClose}>
+      <div>
         {/* Compact Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#262626] bg-[#090909]">
+        <div className="player-sheet-header">
           <div className="min-w-0">
             <h2
               id="player-profile-modal-title"
-              className="text-sm font-bold text-[#F4F7F2] truncate"
+              className="player-sheet-title"
             >
-              {isNonPlayer ? player.name : `#${player.jersey_number} ${player.name}`}
+              {isNonPlayer ? player.name : `${player.jersey_number == null ? "" : `#${player.jersey_number} `}${player.name}`}
             </h2>
-            <p className="text-[11px] text-[#9AA69B] truncate">
+            <p className="player-sheet-subtitle">
               {isNonPlayer ? 'Team Supporter' : player.position} •{' '}
               {resolvedTeam?.name || (isNonPlayer ? 'All Teams' : 'Unallocated Pool')}
             </p>
@@ -54,7 +49,7 @@ export function PlayerProfileModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-[#202020] text-[#9AA69B] hover:text-[#F4F7F2] border border-[#303030] flex items-center justify-center shrink-0"
+            className="arena-icon-button player-sheet-close"
             aria-label="Close player profile"
           >
             <X className="w-4 h-4" />
@@ -63,7 +58,7 @@ export function PlayerProfileModal({
 
         {/* Body: Card + Stats or Supporter Details */}
         <div className="p-4 space-y-4">
-          <div className="max-w-[210px] mx-auto">
+          <div className="player-sheet-card">
             <PlayerCard
               player={player}
               team={resolvedTeam}
@@ -75,64 +70,39 @@ export function PlayerProfileModal({
           </div>
 
           {isNonPlayer ? (
-            <div className="p-3.5 rounded-xl bg-[#202020] border border-[#303030] space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#B8F34A]">
+            <div className="player-sheet-supporter">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider">
                   <Heart className="w-3.5 h-3.5" />
                   <span>Non-Player • Team Supporter</span>
                 </span>
-                <span className="text-[11px] font-semibold text-[#9AA69B]">
+                <span className="text-[11px] font-semibold">
                   {resolvedTeam?.short_code || 'Club Support'}
                 </span>
               </div>
-              <p className="text-xs text-[#F4F7F2] leading-relaxed">
+              <p className="text-xs leading-relaxed">
                 {player.details || 'Official Team Supporter'}
               </p>
             </div>
-          ) : isGK ? (
-            <div className="grid grid-cols-4 gap-2 text-center tabular-nums">
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Apps</span>
-                <span className="text-sm font-black text-[#F4F7F2]">{metrics.appearances}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Clean</span>
-                <span className="text-sm font-black text-[#22C55E]">{metrics.cleanSheets}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Saves</span>
-                <span className="text-sm font-black text-[#B8F34A]">{metrics.saves}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Cards</span>
-                <span className="text-sm font-black text-amber-400">
-                  {metrics.yellowCards}/{metrics.redCards}
-                </span>
-              </div>
-            </div>
+          ) : statsLoading || statsUnavailable ? (
+            <p className="player-sheet-status" role="status">
+              {statsLoading ? 'Loading player statistics…' : 'Player statistics are temporarily unavailable.'}
+            </p>
           ) : (
-            <div className="grid grid-cols-4 gap-2 text-center tabular-nums">
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Apps</span>
-                <span className="text-sm font-black text-[#F4F7F2]">{metrics.appearances}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Goals</span>
-                <span className="text-sm font-black text-[#B8F34A]">{metrics.goals}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Yellow</span>
-                <span className="text-sm font-black text-amber-400">{metrics.yellowCards}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-[#202020] border border-[#303030]">
-                <span className="text-[10px] text-[#9AA69B] block">Red</span>
-                <span className="text-sm font-black text-red-500">{metrics.redCards}</span>
-              </div>
-            </div>
+            <dl className="player-sheet-stats">
+              {(isGK ? [
+                ['Appearances', metrics.appearances], ['Clean sheets', metrics.cleanSheets],
+                ['Saves', metrics.saves], ['Cards (Y/R)', `${metrics.yellowCards}/${metrics.redCards}`],
+              ] : [
+                ['Appearances', metrics.appearances], ['Goals', metrics.goals],
+                ['Yellow cards', metrics.yellowCards], ['Red cards', metrics.redCards],
+              ]).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+              {metrics.assists > 0 && <div><dt>Assists</dt><dd>{metrics.assists}</dd></div>}
+            </dl>
           )}
         </div>
       </div>
-    </div>
+    </ModalDialog>
   );
 }
 

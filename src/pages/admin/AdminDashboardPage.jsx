@@ -113,6 +113,7 @@ export function AdminDashboardPage() {
   // Tournament Settings & Announcement State
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementBody, setAnnouncementBody] = useState('');
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState(null);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState('');
 
   // Queries
@@ -284,18 +285,28 @@ export function AdminDashboardPage() {
     },
   });
 
-  const createAnnouncementMutation = useMutation({
-    mutationFn: (payload) => tournamentsApi.createAnnouncement(payload),
+  const saveAnnouncementMutation = useMutation({
+    mutationFn: ({ id, ...payload }) => id
+      ? tournamentsApi.updateAnnouncement(id, payload)
+      : tournamentsApi.createAnnouncement(payload),
     onSuccess: () => {
       setAnnouncementTitle('');
       setAnnouncementBody('');
+      setEditingAnnouncementId(null);
       queryClient.invalidateQueries({ queryKey: ['announcements'] });
     },
   });
 
   const deleteAnnouncementMutation = useMutation({
     mutationFn: (id) => tournamentsApi.deleteAnnouncement(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
+    onSuccess: (_, id) => {
+      if (id === editingAnnouncementId) {
+        setEditingAnnouncementId(null);
+        setAnnouncementTitle('');
+        setAnnouncementBody('');
+      }
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+    },
   });
 
   // Handlers
@@ -612,8 +623,9 @@ export function AdminDashboardPage() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!announcementTitle.trim() || !announcementBody.trim()) return;
-                createAnnouncementMutation.mutate({
+                if (!announcementTitle.trim() || !announcementBody.trim() || saveAnnouncementMutation.isPending) return;
+                saveAnnouncementMutation.mutate({
+                  id: editingAnnouncementId,
                   tournament_id: tournament?.id || '11111111-1111-1111-1111-111111111111',
                   title: announcementTitle.trim(),
                   body: announcementBody.trim(),
@@ -626,27 +638,41 @@ export function AdminDashboardPage() {
                 placeholder="Matchday update"
                 value={announcementTitle}
                 onChange={(e) => setAnnouncementTitle(e.target.value)}
+                required
               />
               <div>
-                <label className="block text-xs font-medium text-[#9AA69B] mb-1">
+                <label htmlFor="announcement-message" className="block text-xs font-medium text-[#9AA69B] mb-1">
                   Message
                 </label>
                 <textarea
+                  id="announcement-message"
                   rows={2}
                   placeholder="Enter announcement..."
                   value={announcementBody}
                   onChange={(e) => setAnnouncementBody(e.target.value)}
+                  required
                   className="w-full bg-[#202020] border border-[#303030] rounded-lg px-3 py-2 text-xs text-[#F4F7F2] focus:outline-none focus:border-[#B8F34A]"
                 />
               </div>
+              {(saveAnnouncementMutation.isError || deleteAnnouncementMutation.isError) && (
+                <p role="alert" className="text-xs text-[#ff9aab]">The announcement could not be saved or removed. Try again.</p>
+              )}
+              {editingAnnouncementId && (
+                <Button type="button" size="sm" variant="secondary" disabled={saveAnnouncementMutation.isPending} onClick={() => {
+                  setEditingAnnouncementId(null);
+                  setAnnouncementTitle('');
+                  setAnnouncementBody('');
+                  saveAnnouncementMutation.reset();
+                }}>Cancel editing</Button>
+              )}
               <Button
                 type="submit"
                 size="sm"
                 className="w-full"
-                isLoading={createAnnouncementMutation.isPending}
+                isLoading={saveAnnouncementMutation.isPending}
               >
                 <Plus className="w-3.5 h-3.5" />
-                Publish
+                {editingAnnouncementId ? 'Save published update' : 'Publish'}
               </Button>
             </form>
 
@@ -661,14 +687,23 @@ export function AdminDashboardPage() {
                       <p className="text-xs font-semibold text-[#F4F7F2]">{a.title}</p>
                       <p className="text-[11px] text-[#9AA69B] mt-0.5">{a.body}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => deleteAnnouncementMutation.mutate(a.id)}
-                      className="text-[#9AA69B] hover:text-[#EF4444] p-1 shrink-0"
-                      aria-label={`Delete announcement ${a.title}`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button type="button" className="arena-icon-button" disabled={saveAnnouncementMutation.isPending} aria-label={`Edit announcement ${a.title}`}
+                        onClick={() => {
+                          setEditingAnnouncementId(a.id);
+                          setAnnouncementTitle(a.title);
+                          setAnnouncementBody(a.body);
+                          saveAnnouncementMutation.reset();
+                        }}>
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button type="button" className="arena-icon-button hover:text-[#EF4444]"
+                        disabled={deleteAnnouncementMutation.isPending || saveAnnouncementMutation.isPending}
+                        onClick={() => deleteAnnouncementMutation.mutate(a.id)}
+                        aria-label={`Delete announcement ${a.title}`}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

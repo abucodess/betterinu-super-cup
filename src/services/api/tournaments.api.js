@@ -49,9 +49,9 @@ export const tournamentsApi = {
     let authorId = payload.author_id;
     if (!authorId) {
       const { data: sessionData } = await supabase.auth.getSession();
-      authorId =
-        sessionData?.session?.user?.id || 'a0000000-0000-0000-0000-000000000001';
+      authorId = sessionData?.session?.user?.id;
     }
+    if (!authorId) throw new Error('Sign in to publish a league announcement.');
 
     const { data, error } = await supabase
       .from('announcements')
@@ -71,8 +71,19 @@ export const tournamentsApi = {
     return data;
   },
 
+  async updateAnnouncement(id, { title, body }) {
+    const { data, error } = await supabase.from('announcements')
+      .update({ title: title.trim(), content: body.trim(), updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id')
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
   async deleteAnnouncement(id) {
-    const { error } = await supabase.from('announcements').delete().eq('id', id);
+    const { error } = await supabase.from('announcements').delete().eq('id', id).select('id').single();
     if (error) throw new Error(error.message);
     return { success: true };
   },

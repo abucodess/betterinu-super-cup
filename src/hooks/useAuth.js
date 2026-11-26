@@ -1,9 +1,10 @@
 import { useEffect, useCallback } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useQueryClient } from '@tanstack/react-query'
-import { setCredentials, clearCredentials, setLoading } from '@/store/slices/auth.slice'
+import { setCredentials, clearCredentials } from '@/store/slices/auth.slice'
 import { authApi } from '@/services/api/auth.api'
 import { supabase } from '@/services/supabase/client'
+import { getStaffDashboard } from '@/utils/staffRoles'
 
 export function useAuth() {
   const dispatch = useDispatch()
@@ -13,76 +14,54 @@ export function useAuth() {
   )
 
   useEffect(() => {
-    let isMounted = true
+    let active = true
+    let revision = 0
+    let profileTimer
 
-    async function initSession() {
-      try {
-        const currentSession = await authApi.getSession()
-        if (currentSession?.user && isMounted) {
-          const userProfile = await authApi.getUserProfile(currentSession.user.id)
-          const verifiedRole = userProfile?.role || currentSession.user.user_metadata?.role || null
-          if (verifiedRole) {
-            dispatch(
-              setCredentials({
-                user: currentSession.user,
-                profile: userProfile,
-                session: currentSession,
-                role: verifiedRole,
-              })
-            )
-          } else {
-            dispatch(clearCredentials())
-          }
-        } else if (isMounted) {
-          dispatch(setLoading(false))
-        }
-      } catch (err) {
-        if (isMounted) dispatch(setLoading(false))
-      }
-    }
-
-    initSession()
-
-    const { data } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      if (!isMounted) return
-      if (newSession?.user) {
-        const userProfile = await authApi.getUserProfile(newSession.user.id)
-        const verifiedRole = userProfile?.role || newSession.user.user_metadata?.role || null
-        if (verifiedRole) {
-          dispatch(
-            setCredentials({
-              user: newSession.user,
-              profile: userProfile,
-              session: newSession,
-              role: verifiedRole,
-            })
-          )
-        } else {
-          dispatch(clearCredentials())
-        }
-      } else {
+    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (!active) return
+      const current = ++revision
+      window.clearTimeout(profileTimer)
+      if (!newSession?.user) {
         dispatch(clearCredentials())
+        return
       }
+
+      // Supabase requests must run after the auth callback releases its lock.
+      profileTimer = window.setTimeout(async () => {
+        let verifiedProfile
+        try {
+          verifiedProfile = await authApi.getUserProfile(newSession.user.id)
+        } catch {
+          // A failed profile lookup cannot authorize a staff session.
+        }
+
+        if (current !== revision) return
+        if (!getStaffDashboard(verifiedProfile?.role)) {
+          dispatch(clearCredentials())
+          return
+        }
+
+        dispatch(setCredentials({
+          user: newSession.user,
+          profile: verifiedProfile,
+          session: newSession,
+          role: verifiedProfile.role,
+        }))
+      }, 0)
     })
 
     return () => {
-      isMounted = false
+      active = false
+      revision++
+      window.clearTimeout(profileTimer)
       data?.subscription?.unsubscribe()
     }
   }, [dispatch])
 
   const login = useCallback(
     async (email, password) => {
-      dispatch(setLoading(true))
       const result = await authApi.signIn(email, password)
-      if (result.error || !result.role) {
-        dispatch(setLoading(false))
-        return {
-          success: false,
-          error: result.error || 'Account does not have an authorized tournament management role.',
-        }
-      }
-
       dispatch(
         setCredentials({
           user: result.user,

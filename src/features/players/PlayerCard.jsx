@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image as ImageIcon, Heart } from 'lucide-react';
+import { Image as ImageIcon, Heart, ChevronRight, UserRound } from 'lucide-react';
 import { cloudinaryService } from '../../services/cloudinary/cloudinary.service';
 
 /**
@@ -15,6 +15,8 @@ export function PlayerCard({
   onSelect,
   className = '',
   actionSlot = null,
+  imageLoading = 'lazy',
+  showTeam = true,
 }) {
   const [imgError, setImgError] = useState(false);
 
@@ -44,6 +46,31 @@ export function PlayerCard({
   const rawCardUrl = cloudinaryService.getOptimizedPortraitUrl(player.photo_url);
   const cardImageUrl = !imgError && rawCardUrl ? rawCardUrl : '';
 
+  if (variant === 'row' || variant === 'portrait') {
+    const Component = onSelect ? 'button' : 'div';
+    const interaction = onSelect ? { type: 'button', onClick: () => onSelect(player), 'aria-haspopup': 'dialog' } : {};
+    const role = isNonPlayer ? 'Supporter' : player.position;
+    const club = showTeam ? resolvedTeam?.name : null;
+
+    return (
+      <Component {...interaction} className={`arena-player-${variant} ${className}`}>
+        <span className="arena-player-photo" aria-hidden="true">
+          {cardImageUrl ? (
+            <img src={cardImageUrl} alt="" loading={imageLoading} decoding="async" draggable={false} onError={() => setImgError(true)} />
+          ) : isNonPlayer ? <Heart size={17} /> : <UserRound size={17} />}
+        </span>
+        <span className="arena-player-identity">
+          <strong>{player.name}</strong>
+          <small>
+            {!isNonPlayer && player.jersey_number != null && <span>#{player.jersey_number} </span>}
+            {role}{club && ` · ${club}`}
+          </small>
+        </span>
+        {onSelect && <ChevronRight className="arena-player-arrow" size={19} aria-hidden="true" />}
+      </Component>
+    );
+  }
+
   // COMPACT PITCH MARKER (Used on the 5-a-side tactical pitch)
   if (variant === 'compact') {
     return (
@@ -60,6 +87,8 @@ export function PlayerCard({
               src={cardImageUrl}
               alt={player.name}
               onError={() => setImgError(true)}
+              loading={imageLoading}
+              decoding="async"
               draggable={false}
               className="w-full h-full object-contain"
             />
@@ -116,6 +145,8 @@ export function PlayerCard({
               src={cardImageUrl}
               alt={`${player.name} ${isNonPlayer ? 'Supporter' : 'eFootball'} Card`}
               onError={() => setImgError(true)}
+              loading={imageLoading}
+              decoding="async"
               draggable={false}
               className="w-full h-full object-contain rounded-lg pointer-events-none"
             />
@@ -198,7 +229,7 @@ export function PlayerCard({
 
         {/* Compact Player / Supporter Name & Team Caption Under Uploaded Card */}
         {cardImageUrl && (
-          <div className="mt-1 flex items-center justify-between gap-1 px-0.5">
+          <div className="arena-player-caption mt-1 flex items-center justify-between gap-1 px-0.5">
             <span
               className={`${
                 size === 'xs' ? 'text-[10px]' : 'text-[11px]'

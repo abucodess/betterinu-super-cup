@@ -21,16 +21,16 @@ export const standingsApi = {
     }));
   },
 
-  async getPlayerStats() {
-    const [{ data: statsData, error: stErr }, { data: playersData }] = await Promise.all([
-      supabase
-        .from('player_stats_view')
-        .select('*')
-        .order('goals', { ascending: false })
-        .order('player_name', { ascending: true }),
-      supabase.from('players').select('id, jersey_number, name'),
-    ]);
-
+  async getPlayerStats({ playerId } = {}) {
+    let statsQuery = supabase.from('player_stats_view').select('*')
+      .order('goals', { ascending: false })
+      .order('player_name', { ascending: true });
+    let playersQuery = supabase.from('players').select('id, jersey_number, name');
+    if (playerId) {
+      statsQuery = statsQuery.eq('player_id', playerId);
+      playersQuery = playersQuery.eq('id', playerId);
+    }
+    const [{ data: statsData, error: stErr }, { data: playersData }] = await Promise.all([statsQuery, playersQuery]);
     if (stErr) throw new Error(stErr.message);
 
     const jerseyMap = {};

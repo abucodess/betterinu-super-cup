@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/client';
+import { getStaffDashboard } from '../../utils/staffRoles';
 
 /**
  * Production Authentication & Management Profile Service
@@ -14,15 +15,15 @@ export const authApi = {
     });
 
     if (error) {
-      throw new Error(error.message);
+      throw error;
     }
 
     const profile = await this.getUserProfile(data.user.id);
-    const verifiedRole = profile?.role || data.user.user_metadata?.role || null;
+    const verifiedRole = profile?.role;
 
-    if (!verifiedRole) {
-      await supabase.auth.signOut();
-      throw new Error('Unauthorized account: No management role assigned in database.');
+    if (!getStaffDashboard(verifiedRole)) {
+      await supabase.auth.signOut({ scope: 'local' });
+      throw Object.assign(new Error('Staff access is unavailable for this account.'), { code: 'staff_access_unavailable' });
     }
 
     return {

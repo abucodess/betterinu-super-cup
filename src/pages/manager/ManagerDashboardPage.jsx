@@ -403,9 +403,10 @@ export function ManagerDashboardPage() {
               onSelectPlayer={(p) => setSelectedPlayer(p)}
             />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 justify-items-center">
+            <div className="arena-player-grid">
               {filteredRoster.map((player) => (
                 <PlayerCard
+                  variant="row"
                   key={player.id}
                   player={player}
                   team={myTeam}

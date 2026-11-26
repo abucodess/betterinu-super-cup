@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import {
   Play,
   Pause,
@@ -24,11 +25,13 @@ import { matchesApi } from '../../services/api/matches.api';
 import { playersApi } from '../../services/api/players.api';
 import { teamsApi } from '../../services/api/teams.api';
 import { standingsApi } from '../../services/api/standings.api';
+import { FinalResultDialog } from './FinalResultDialog';
 
 export function RefereeControlPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const refereeId = useSelector((state) => state.auth.user?.id);
 
   const activeTab = useMemo(() => {
     if (location.pathname.startsWith('/referee/events')) return 'events';
@@ -45,6 +48,8 @@ export function RefereeControlPage() {
   const [selectedMatchId, setSelectedMatchId] = useState('');
   const [seconds, setSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const [reviewMatchId, setReviewMatchId] = useState(null);
+  const [publishedMatchId, setPublishedMatchId] = useState(null);
 
   // Event Player Attribution Modal State
   const [pendingEvent, setPendingEvent] = useState(null); // { teamId, teamName, eventType }
@@ -56,10 +61,13 @@ export function RefereeControlPage() {
   const [inspectPlayer, setInspectPlayer] = useState(null);
 
   // Queries
-  const { data: matches = [], isLoading: loadingMatches } = useQuery({
-    queryKey: ['matches'],
-    queryFn: () => matchesApi.getMatches(),
+  const { data: assignedMatches, isPending: loadingMatches, isError: matchesError, refetch: retryMatches } = useQuery({
+    queryKey: ['matches', 'referee', refereeId],
+    queryFn: () => matchesApi.getMatches({ refereeId }),
+    enabled: Boolean(refereeId),
+    refetchInterval: 6000,
   });
+  const matches = useMemo(() => (assignedMatches || []).filter((match) => match.referee_id === refereeId), [assignedMatches, refereeId]);
 
   const { data: players = [] } = useQuery({
     queryKey: ['players'],
@@ -99,14 +107,14 @@ export function RefereeControlPage() {
   }, [matches, selectedMatchId]);
 
   useEffect(() => {
-    if (activeMatch && !selectedMatchId) {
+    if (activeMatch && activeMatch.id !== selectedMatchId) {
       setSelectedMatchId(activeMatch.id);
       setSeconds(activeMatch.timer_seconds || 0);
       setIsRunning(activeMatch.is_timer_running || false);
     }
   }, [activeMatch, selectedMatchId]);
 
-  const { data: events = [] } = useQuery({
+  const { data: events = [], isFetching: loadingEvents, isError: eventsError, refetch: retryEvents } = useQuery({
     queryKey: ['match_events', activeMatch?.id],
     queryFn: () => matchesApi.getMatchEvents(activeMatch?.id),
     enabled: !!activeMatch?.id,
@@ -151,9 +159,12 @@ export function RefereeControlPage() {
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ status, period, timerSeconds, running }) =>
-      matchesApi.updateMatchStatus(activeMatch?.id, status, period, timerSeconds, running),
-    onSuccess: () => {
+    mutationFn: ({ matchId, status, period, timerSeconds }) =>
+      matchesApi.updateMatchStatus(matchId, status, period, timerSeconds),
+    onSuccess: (_, { matchId, status, running }) => {
+      setIsRunning(running);
+      setReviewMatchId(null);
+      setPublishedMatchId(status === 'completed' ? matchId : null);
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       queryClient.invalidateQueries({ queryKey: ['standings'] });
     },
@@ -171,6 +182,15 @@ export function RefereeControlPage() {
     return (
       <Card className="p-8 text-center text-sm text-[#9AA69B]">
         Loading pitchside officiating console...
+      </Card>
+    );
+  }
+
+  if (matchesError) {
+    return (
+      <Card className="p-8 space-y-3 text-center text-sm text-[#9AA69B]">
+        <p role="alert">Assigned matches could not be loaded.</p>
+        <Button onClick={() => retryMatches()}>Try again</Button>
       </Card>
     );
   }
@@ -223,8 +243,9 @@ export function RefereeControlPage() {
   };
 
   const handleMatchPeriodTransition = (nextStatus, nextPeriod, shouldRun) => {
-    setIsRunning(shouldRun);
+    if (statusMutation.isPending) return;
     statusMutation.mutate({
+      matchId: activeMatch.id,
       status: nextStatus,
       period: nextPeriod,
       timerSeconds: seconds,
@@ -234,12 +255,20 @@ export function RefereeControlPage() {
 
   return (
     <div className="space-y-4">
+      {publishedMatchId === activeMatch.id && (
+        <p role="status" className="text-sm text-[#B8F34A]">Final result published.</p>
+      )}
+      {statusMutation.isError && reviewMatchId !== activeMatch.id && (
+        <p role="alert" className="text-sm text-[#ffc1ce]">Match status could not be updated. Try again.</p>
+      )}
       {/* Top Match Selector & Console Mode Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#141414] p-3 rounded-xl border border-[#303030]">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[#9AA69B] uppercase">Active Fixture:</span>
+          <label htmlFor="referee-active-match" className="text-xs font-bold text-[#9AA69B] uppercase">Active Fixture</label>
           <select
+            id="referee-active-match"
             value={activeMatch.id}
+            disabled={statusMutation.isPending}
             onChange={(e) => {
               const nextMatch = matches.find((m) => m.id === e.target.value);
               setSelectedMatchId(e.target.value);
@@ -260,7 +289,7 @@ export function RefereeControlPage() {
           {[
             { id: 'control', label: 'Pitchside Control', icon: Timer },
             { id: 'events', label: `Event Log (${events.length})`, icon: ClipboardList },
-            { id: 'history', label: `All Matches (${matches.length})`, icon: History },
+            { id: 'history', label: `Assigned Matches (${matches.length})`, icon: History },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -329,7 +358,11 @@ export function RefereeControlPage() {
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={() => handleMatchPeriodTransition('completed', 2, false)}
+                  onClick={() => {
+                    statusMutation.reset();
+                    setReviewMatchId(activeMatch.id);
+                    retryEvents();
+                  }}
                   isLoading={statusMutation.isPending}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" /> Full-Time (Complete)
@@ -856,6 +889,15 @@ export function RefereeControlPage() {
             </form>
           </Card>
         </div>
+      )}
+
+      {reviewMatchId === activeMatch.id && activeMatch.status === 'live' && (
+        <FinalResultDialog
+          match={activeMatch} events={events} eventsPending={loadingEvents} eventsError={eventsError}
+          onRetry={retryEvents} pending={statusMutation.isPending} failed={statusMutation.isError}
+          onDismiss={() => { setReviewMatchId(null); statusMutation.reset(); }}
+          onConfirm={() => handleMatchPeriodTransition('completed', 2, false)}
+        />
       )}
 
       {/* Player Dossier Modal */}

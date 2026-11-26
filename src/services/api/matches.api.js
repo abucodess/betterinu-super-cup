@@ -1,8 +1,8 @@
 import { supabase } from '../supabase/client';
 
 export const matchesApi = {
-  async getMatches() {
-    const { data, error } = await supabase
+  async getMatches({ teamId, refereeId } = {}) {
+    let query = supabase
       .from('matches')
       .select(`
         *,
@@ -12,6 +12,9 @@ export const matchesApi = {
       `)
       .order('match_number', { ascending: true });
 
+    if (teamId) query = query.or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`);
+    if (refereeId) query = query.eq('referee_id', refereeId);
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     return (data || []).map((m) => ({
       ...m,
@@ -189,7 +192,7 @@ export const matchesApi = {
       updates.current_minute = Math.max(0, Math.floor(Number(timerSeconds) / 60));
     }
 
-    const { error } = await supabase.from('matches').update(updates).eq('id', matchId);
+    const { error } = await supabase.from('matches').update(updates).eq('id', matchId).select('id').single();
     if (error) throw new Error(error.message);
     return { success: true };
   },

@@ -73,6 +73,35 @@ const ROLE_LABELS = {
   FW: 'Clinical Center Forward',
 };
 
+function getAssistPlayerId(event) {
+  if (event.event_type !== 'GOAL' || !event.extra_info) return null;
+
+  let info = event.extra_info;
+  if (typeof info === 'string') {
+    if (!info.trimStart().startsWith('{')) return /\bassist:\s*([\w-]+)/i.exec(info)?.[1].toLowerCase() || null;
+    try {
+      info = JSON.parse(info);
+    } catch {
+      return null;
+    }
+  }
+
+  return typeof info?.assist_player_id === 'string' ? info.assist_player_id.toLowerCase() : null;
+}
+
+export function countAssistsByPlayer(matchEvents) {
+  const counts = new Map();
+  const seen = new Set();
+
+  for (const event of matchEvents) {
+    const playerId = getAssistPlayerId(event);
+    if (!playerId || (event.id != null && seen.has(event.id))) continue;
+    if (event.id != null) seen.add(event.id);
+    counts.set(playerId, (counts.get(playerId) || 0) + 1);
+  }
+  return counts;
+}
+
 /**
  * Calculates transparent, verified player statistics and performance-derived rating
  * strictly from actual recorded match events and team match participation.
@@ -164,16 +193,8 @@ export function calculatePlayerProfileMetrics(
       ? Math.max(Number(playerStatsRow.red_cards), redFromEvents)
       : redFromEvents;
 
-  const assists = matchEvents.filter((ev) => {
-    if (ev.event_type !== 'GOAL' || !ev.extra_info) return false;
-    if (typeof ev.extra_info === 'string') {
-      return ev.extra_info.toLowerCase().includes(`assist:${player.id}`.toLowerCase());
-    }
-    if (typeof ev.extra_info === 'object') {
-      return ev.extra_info.assist_player_id === player.id;
-    }
-    return false;
-  }).length;
+  const playerId = String(player.id).toLowerCase();
+  const assists = countAssistsByPlayer(matchEvents).get(playerId) || 0;
 
   const saves = playerEvents.filter((ev) => {
     if (!ev.extra_info) return false;

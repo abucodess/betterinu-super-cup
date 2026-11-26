@@ -1,199 +1,96 @@
 import React, { useState } from 'react';
-import { Layers } from 'lucide-react';
+import { ArrowUp, Layers, UserRound } from 'lucide-react';
+import { ClubCrest } from '../../components/shared/ArenaUI';
 import { TACTICAL_FORMATIONS, mapSquadToFormationSlots } from '../../utils/tournamentRules';
-import { PlayerCard } from '../players/PlayerCard';
+import { cloudinaryService } from '../../services/cloudinary/cloudinary.service';
+import '../../arena.css';
 
-/**
- * Interactive 5-a-side Football Pitch Tactical View (eFootball Game Plan aesthetic).
- * Maps a team's 5-player squad (1 GK + 4 Outfield) onto selectable tactical formations.
- */
-export function TacticalPitchView({
-  team,
-  players = [],
-  playerStatsMap = {},
-  matchEvents = [],
-  teamMatches = [],
-  initialFormation = '1-2-1',
-  onSelectPlayer,
-}) {
-  const [formationKey, setFormationKey] = useState(
-    TACTICAL_FORMATIONS[initialFormation] ? initialFormation : '1-2-1'
+function PitchMarks() {
+  return (
+    <svg viewBox="0 0 520 600" preserveAspectRatio="xMidYMid meet" className="game-plan-lines" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="13" y="20" width="494" height="560" rx="2" />
+      <path d="M13 300H507 M216 20V5h88v15 M216 580v15h88v-15" />
+      <circle cx="260" cy="300" r="49" />
+      <circle cx="260" cy="300" r="3" fill="currentColor" />
+      <path d="M143 20v42a83 83 0 0 0 83 83h68a83 83 0 0 0 83-83V20 M143 580v-42a83 83 0 0 1 83-83h68a83 83 0 0 1 83 83v42 M207 20v49h106V20 M207 580v-49h106v49" />
+      <circle cx="260" cy="109" r="2.5" fill="currentColor" />
+      <circle cx="260" cy="491" r="2.5" fill="currentColor" />
+      <path d="M13 37a17 17 0 0 0 17-17 M490 20a17 17 0 0 0 17 17 M13 563a17 17 0 0 1 17 17 M490 580a17 17 0 0 1 17-17" />
+    </svg>
   );
+}
 
+function PitchPlayer({ player, role, onSelect, active, children }) {
+  const [failedUrl, setFailedUrl] = useState(null);
+  const photo = cloudinaryService.getOptimizedPortraitUrl(player.photo_url);
+  return (
+    <button type="button" className="game-plan-player" onClick={onSelect} aria-pressed={active} aria-haspopup="dialog">
+      <span className="sr-only">Inspect player </span>
+      <span className="game-plan-portrait" aria-hidden="true">
+        {photo && photo !== failedUrl ? <img src={photo} alt="" loading="lazy" decoding="async" onError={() => setFailedUrl(photo)} /> : <UserRound size={19} />}
+        {player.jersey_number != null && <span className="game-plan-number">#{player.jersey_number}</span>}
+      </span>
+      <span className="game-plan-player-name">{player.name}</span>
+      <span className="game-plan-player-role">{children || role}</span>
+      {children && <span className="sr-only">, {role}</span>}
+    </button>
+  );
+}
+
+export function TacticalPitchView({ team, players = [], initialFormation = '1-2-1', onSelectPlayer }) {
+  const [formationKey, setFormationKey] = useState(TACTICAL_FORMATIONS[initialFormation] ? initialFormation : '1-2-1');
+  const [activeId, setActiveId] = useState(null);
   const { formation, slots } = mapSquadToFormationSlots(players, formationKey);
-  const teamColor = team?.color_code || '#072AC8';
+  const squad = players.filter((player) => !player.is_non_player && player.position !== 'SUP' && Number(player.jersey_number) !== 0);
+  const keeperCount = squad.filter((player) => player.is_goalkeeper || player.position === 'GK').length;
+  const starters = slots.map((slot) => slot.player).filter(Boolean);
+  const reserves = squad.filter((player) => !starters.some((starter) => starter.id === player.id));
 
-  const squadCount = players.length;
-  const gkCount = players.filter((p) => p.position === 'GK' || p.is_goalkeeper).length;
-  const outfieldCount = squadCount - gkCount;
+  function selectPlayer(player) {
+    setActiveId(player.id);
+    onSelectPlayer?.(player);
+  }
 
   return (
-    <div className="rounded-2xl bg-[#141414] border border-[#262626] shadow-sm overflow-hidden">
-      {/* Top Tactical Control Bar */}
-      <div className="p-4 border-b border-[#262626] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#1C1C1C]">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-[#FFFFFF] shrink-0 shadow-xs"
-            style={{ backgroundColor: teamColor }}
-          >
-            {team?.short_code || 'TM'}
+    <section className="game-plan" aria-label={`${team?.name || 'Assigned squad'} game plan`}
+      style={{ '--club-accent': team?.color_code || '#626fff' }}>
+      <div className="game-plan-grid">
+        <div className="game-plan-controls">
+          <div className="game-plan-heading"><ClubCrest club={team} /><div><h3>Game Plan</h3><p>{team?.name || 'Assigned squad'} · 5-a-side</p></div></div>
+          <div className="game-plan-control-heading"><Layers size={16} /> Formation</div>
+          <div className="game-plan-formations" role="group" aria-label="Formation">
+            {Object.values(TACTICAL_FORMATIONS).map((option) => (
+              <button type="button" key={option.id} aria-pressed={option.id === formationKey} title={option.name} onClick={() => setFormationKey(option.id)}>{option.id}</button>
+            ))}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-extrabold text-[#F4F7F2]">
-                {team?.name || 'Assigned Squad'} — Game Plan
-              </h3>
-              <span className="text-[11px] font-extrabold px-2 py-0.5 rounded bg-[#FFC600]/15 text-[#FFC600] border border-[#FFC600]/45">
-                {formation.name}
-              </span>
-            </div>
-            <p className="text-xs font-medium text-[#9AA69B]">
-              {formation.description} • Click any player on the pitch to open full dossier
-            </p>
+          <div className="game-plan-formation-description" aria-live="polite">
+            <strong>{formation.name}</strong>
+            <p>{formation.style}. {formation.description}</p>
+          </div>
+          <dl className="game-plan-counts">
+            <div><dt>Players</dt><dd>{squad.length}</dd></div>
+            <div><dt>Goalkeepers</dt><dd>{keeperCount}</dd></div>
+            <div><dt>Outfield</dt><dd>{squad.length - keeperCount}</dd></div>
+          </dl>
+        </div>
+        <div className="game-plan-board">
+          <div className="game-plan-pitch">
+            <PitchMarks />
+            <div className="game-plan-direction"><ArrowUp size={12} /> Attack</div>
+            {slots.map((slot) => <div key={slot.player?.id || slot.id} className="game-plan-slot" style={{ left: `${slot.x}%`, top: `${slot.y}%` }}>
+              {slot.player ? <PitchPlayer player={slot.player} role={slot.label} active={activeId === slot.player.id}
+                onSelect={() => selectPlayer(slot.player)}>{slot.role}</PitchPlayer> :
+                <span className="game-plan-vacancy" aria-label={`Unfilled position: ${slot.label}`}><strong>{slot.role}</strong><small>Open</small></span>}
+            </div>)}
           </div>
         </div>
-
-        {/* Formation Switcher Pills */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-semibold text-[#9AA69B] mr-1 flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5 text-[#FFC600]" /> Formation:
-          </span>
-          {Object.keys(TACTICAL_FORMATIONS).map((key) => {
-            const active = key === formationKey;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setFormationKey(key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                  active
-                    ? 'bg-[#001AFF] text-[#FFFFFF] shadow-xs border border-[#3B82F6]/40'
-                    : 'bg-[#141414] text-[#9AA69B] hover:text-[#F4F7F2] border border-[#303030]'
-                }`}
-              >
-                {key}
-              </button>
-            );
-          })}
-        </div>
+        <aside className="game-plan-reserves">
+          <h4>Substitutes <span>{reserves.length}</span></h4>
+          {reserves.length ? <ul>{reserves.map((player) => <li key={player.id}><PitchPlayer player={player}
+            role={player.position} active={activeId === player.id} onSelect={() => selectPlayer(player)} /></li>)}</ul> : <p>No substitutes assigned.</p>}
+        </aside>
       </div>
-
-      {/* Interactive 5-a-side Football Pitch Canvas */}
-      <div className="relative w-full h-[460px] sm:h-[520px] bg-[#0F5132] overflow-hidden select-none">
-        {/* Alternating Turf Stripes */}
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(0deg, #146C43 0px, #146C43 52px, #0F5132 52px, #0F5132 104px)',
-          }}
-        />
-
-        {/* Subtle Vignette */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/25 pointer-events-none" />
-
-        {/* Pitch Boundary & Markings SVG */}
-        <svg
-          viewBox="0 0 600 700"
-          preserveAspectRatio="none"
-          className="absolute inset-3 sm:inset-5 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2.5rem)] h-[calc(100%-1.5rem)] sm:h-[calc(100%-2.5rem)] text-white/45 pointer-events-none"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-        >
-          <rect x="10" y="10" width="580" height="680" rx="6" />
-          <line x1="10" y1="350" x2="590" y2="350" />
-          <circle cx="300" cy="350" r="65" />
-          <circle cx="300" cy="350" r="4" fill="currentColor" />
-
-          {/* Top Penalty Area */}
-          <rect x="145" y="10" width="310" height="105" />
-          <rect x="220" y="10" width="160" height="42" />
-          <path d="M 240 115 A 60 60 0 0 0 360 115" />
-
-          {/* Bottom Penalty Area */}
-          <rect x="145" y="585" width="310" height="105" />
-          <rect x="220" y="648" width="160" height="42" />
-          <path d="M 240 585 A 60 60 0 0 1 360 585" />
-
-          {/* Corner Arcs */}
-          <path d="M 10 28 A 18 18 0 0 0 28 10" />
-          <path d="M 572 10 A 18 18 0 0 0 590 28" />
-          <path d="M 10 672 A 18 18 0 0 1 28 690" />
-          <path d="M 572 690 A 18 18 0 0 1 590 672" />
-        </svg>
-
-        {/* Direction Watermark */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest text-white/60 pointer-events-none">
-          ▲ Attacking Direction ▲
-        </div>
-
-        {/* Positioned Formation Slots */}
-        {slots.map((slot) => {
-          const player = slot.player;
-          const playerStats = player ? playerStatsMap[player.id] || {} : {};
-          const playerEvents = player
-            ? matchEvents.filter((e) => e.player_id === player.id)
-            : [];
-
-          return (
-            <div
-              key={slot.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center"
-              style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
-            >
-              {player ? (
-                <PlayerCard
-                  player={player}
-                  team={team}
-                  stats={playerStats}
-                  matchEvents={playerEvents}
-                  teamMatches={teamMatches}
-                  variant="compact"
-                  onSelect={onSelectPlayer}
-                />
-              ) : (
-                <div className="w-24 sm:w-28 rounded-xl bg-[#141414]/95 border border-[#303030] p-2.5 text-center shadow-md">
-                  <div className="w-8 h-8 mx-auto rounded-full bg-[#001AFF]/20 border border-[#3B82F6]/45 flex items-center justify-center text-[10px] font-extrabold text-[#FFC600]">
-                    {slot.role}
-                  </div>
-                  <p className="mt-1 text-[10px] font-bold text-[#F4F7F2] truncate">
-                    {slot.label}
-                  </p>
-                  <p className="text-[9px] text-[#FFC600] uppercase font-bold">
-                    Unfilled Slot
-                  </p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Pitch Footer Bar */}
-      <div className="px-4 py-3 border-t border-[#262626] bg-[#1C1C1C] flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-4 tabular-nums">
-          <span className="text-[#9AA69B] font-medium">
-            Squad Size: <strong className="text-[#F4F7F2]">{squadCount} / 5</strong>
-          </span>
-          <span className="text-[#9AA69B] font-medium">
-            Goalkeeper:{' '}
-            <strong className={gkCount === 1 ? 'text-[#4ADE80]' : 'text-[#FFC600]'}>
-              {gkCount} / 1
-            </strong>
-          </span>
-          <span className="text-[#9AA69B] font-medium">
-            Outfield:{' '}
-            <strong className={outfieldCount === 4 ? 'text-[#4ADE80]' : 'text-[#FFC600]'}>
-              {outfieldCount} / 4
-            </strong>
-          </span>
-        </div>
-        <span className="text-[#9AA69B] font-medium">
-          5-a-Side Official Tournament Format (1 GK + 4 Outfield)
-        </span>
-      </div>
-    </div>
+    </section>
   );
 }
 
