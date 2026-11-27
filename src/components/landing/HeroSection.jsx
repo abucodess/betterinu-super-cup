@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './championship.css';
 
@@ -52,8 +52,8 @@ export function HeroSection() {
         />
       </picture>
 
-      <Link to="/public" className="championship-cta" aria-label="Get Started">
-        <ArrowDown size={23} strokeWidth={2} aria-hidden="true" />
+      <Link to="/public" className="championship-cta">
+        Get Started <ArrowRight size={19} aria-hidden="true" />
       </Link>
     </section>
   );

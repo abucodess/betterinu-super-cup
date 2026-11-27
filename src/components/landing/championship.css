@@ -125,25 +125,24 @@
   inset-block-end: max(19px, calc(env(safe-area-inset-bottom) + 12px));
   inset-inline-start: 50%;
   translate: -50% 0;
-  display: inline-grid;
-  place-items: center;
-  inline-size: 54px;
-  block-size: 54px;
-  border: 1px solid #ffffff87;
-  border-radius: 50%;
-  background: var(--championship-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  inline-size: clamp(172px, 46vw, 218px);
+  block-size: 52px;
+  border-radius: 11px;
+  background: #2014f5;
   color: #fff;
-  box-shadow: 0 4px 20px #06133366, 0 0 0 5px #d8edff24;
+  font-size: .94rem;
+  font-weight: 600;
+  box-shadow: 0 5px 16px #0e10614d;
   animation: championship-atmosphere 500ms ease-out;
   transition: background-color 160ms ease, transform 160ms ease;
 }
 
-.championship-cta svg {
-  animation: championship-arrow 1100ms 950ms ease-in-out 2;
-}
-
 @media (hover: hover) {
-  .championship-cta:hover { background: #182c62; transform: translateY(-2px); }
+  .championship-cta:hover { background: #1a10ca; transform: translateY(-2px); }
 }
 
 .championship-cta:active { transform: translateY(2px); }
@@ -162,10 +161,6 @@
 @keyframes championship-atmosphere {
   from { opacity: .8; }
   to { opacity: 1; }
-}
-
-@keyframes championship-arrow {
-  50% { transform: translateY(3px); }
 }
 
 @media (min-width: 620px) {
@@ -194,8 +189,7 @@
   .championship-year,
   .championship-trophy,
   .championship-artwork,
-  .championship-cta,
-  .championship-cta svg {
+  .championship-cta {
     animation: none;
   }
 

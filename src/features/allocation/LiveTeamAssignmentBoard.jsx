@@ -11,6 +11,8 @@ import {
   Search,
 } from 'lucide-react';
 import { PlayerCard } from '../players/PlayerCard';
+import { ModalDialog } from '../../components/ui/ModalDialog';
+import { StaffButton } from '../../components/shared/StaffManagementUI';
 import { allocationApi } from '../../services/api/allocation.api';
 import { soundEffects } from '../../utils/soundEffects';
 
@@ -174,13 +176,13 @@ export function LiveTeamAssignmentBoard({
   return (
     <div className="space-y-3">
       {/* Compact Top Control Bar */}
-      <div className="px-3.5 py-2.5 rounded-xl bg-[#141414] border border-[#262626] flex flex-wrap items-center justify-between gap-2">
+      <div className="px-3.5 py-2.5 rounded-xl bg-[var(--staff-surface)] border border-[color:var(--staff-line)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#B8F34A] animate-pulse" />
-          <h2 className="text-xs sm:text-sm font-bold text-[#F4F7F2]">
+          <span className="w-2 h-2 rounded-full bg-[var(--staff-blue)] animate-pulse" />
+          <h2 className="text-xs sm:text-sm font-bold text-[color:var(--staff-ink)]">
             Live Drag & Drop Team Assignment
           </h2>
-          <span className="hidden md:inline text-[11px] text-[#9AA69B]">
+          <span className="hidden md:inline text-[11px] text-[color:var(--staff-muted)]">
             — Drag cards into a team or tap +ALP / +BET / +GAM
           </span>
         </div>
@@ -189,10 +191,10 @@ export function LiveTeamAssignmentBoard({
           {statusBanner && (
             <div
               role="status"
-              className="px-2.5 py-1 rounded-lg bg-[#202020] border border-[#B8F34A]/40 flex items-center gap-1.5 text-[11px] animate-fade-in"
+              className="px-2.5 py-1 rounded-lg bg-[var(--staff-subtle)] border border-[color:var(--staff-blue)]/40 flex items-center gap-1.5 text-[11px] animate-fade-in"
             >
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#B8F34A] shrink-0" />
-              <span className="text-[#F4F7F2]">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[color:var(--staff-blue)] shrink-0" />
+              <span className="text-[color:var(--staff-ink)]">
                 <strong>{statusBanner.playerName}</strong> →{' '}
                 <strong style={{ color: statusBanner.teamColor }}>
                   {statusBanner.teamName}
@@ -201,7 +203,7 @@ export function LiveTeamAssignmentBoard({
               <button
                 type="button"
                 onClick={() => setStatusBanner(null)}
-                className="text-[#9AA69B] hover:text-[#F4F7F2] ml-1"
+                className="text-[color:var(--staff-muted)] hover:text-[color:var(--staff-ink)] ml-1"
                 aria-label="Dismiss notification"
               >
                 <X className="w-3 h-3" />
@@ -209,9 +211,9 @@ export function LiveTeamAssignmentBoard({
             </div>
           )}
 
-          <div className="px-2.5 py-1 rounded-lg bg-[#202020] border border-[#303030] text-xs font-semibold tabular-nums">
-            <span className="text-[#9AA69B]">Assigned: </span>
-            <span className="text-[#B8F34A] font-bold">
+          <div className="px-2.5 py-1 rounded-lg bg-[var(--staff-subtle)] border border-[color:var(--staff-line)] text-xs font-semibold tabular-nums">
+            <span className="text-[color:var(--staff-muted)]">Assigned: </span>
+            <span className="text-[color:var(--staff-blue)] font-bold">
               {totalAssigned} / {players.length}
             </span>
           </div>
@@ -220,7 +222,7 @@ export function LiveTeamAssignmentBoard({
             <button
               type="button"
               onClick={() => setShowResetConfirm(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#202020] hover:bg-red-500/15 text-[#9AA69B] hover:text-red-400 border border-[#303030] hover:border-red-500/30 text-xs font-semibold transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--staff-subtle)] hover:bg-red-500/15 text-[color:var(--staff-muted)] hover:text-[color:var(--staff-danger)] border border-[color:var(--staff-line)] hover:border-red-500/30 text-xs font-semibold transition-colors"
             >
               <RotateCcw className="w-3 h-3" />
               <span>Reset All</span>
@@ -232,7 +234,7 @@ export function LiveTeamAssignmentBoard({
       {errorBanner && (
         <div
           role="alert"
-          className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-xs text-red-400"
+          className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-xs text-[color:var(--staff-danger)]"
         >
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorBanner}</span>
@@ -257,14 +259,14 @@ export function LiveTeamAssignmentBoard({
               onDragLeave={(e) => handleDragLeave(e, team.id)}
               onDrop={(e) => handleDrop(e, team.id)}
               data-testid={`team-dropzone-${team.short_code}`}
-              className={`rounded-xl bg-[#141414] border-2 transition-all duration-150 p-2.5 flex flex-col gap-2 ${
+              className={`rounded-xl bg-[var(--staff-surface)] border-2 transition-all duration-150 p-2.5 flex flex-col gap-2 ${
                 isOver
-                  ? 'border-[#B8F34A] bg-[#090909] scale-[1.01] shadow-lg'
-                  : 'border-[#262626]'
+                  ? 'border-[color:var(--staff-blue)] bg-[var(--staff-subtle)] scale-[1.01] shadow-lg'
+                  : 'border-[color:var(--staff-line)]'
               }`}
             >
               {/* Compact Team Header */}
-              <div className="flex items-center justify-between border-b border-[#262626] pb-2">
+              <div className="flex items-center justify-between border-b border-[color:var(--staff-line)] pb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <div
                     className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[11px] text-[#090909] shrink-0"
@@ -273,10 +275,10 @@ export function LiveTeamAssignmentBoard({
                     {team.short_code}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-xs sm:text-sm text-[#F4F7F2] truncate leading-tight">
+                    <h3 className="font-bold text-xs sm:text-sm text-[color:var(--staff-ink)] truncate leading-tight">
                       {team.name}
                     </h3>
-                    <span className="text-[10px] text-[#9AA69B] block leading-none mt-0.5">
+                    <span className="text-[10px] text-[color:var(--staff-muted)] block leading-none mt-0.5">
                       {supporterCount > 0
                         ? `${activeSquadCount}/5 players • ${supporterCount} supporter${supporterCount > 1 ? 's' : ''}`
                         : 'Drop player card here'}
@@ -284,7 +286,7 @@ export function LiveTeamAssignmentBoard({
                   </div>
                 </div>
 
-                <span className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-md bg-[#202020] text-[#F4F7F2]">
+                <span className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-md bg-[var(--staff-subtle)] text-[color:var(--staff-ink)]">
                   {activeSquadCount} / 5
                 </span>
               </div>
@@ -294,8 +296,8 @@ export function LiveTeamAssignmentBoard({
                 <div
                   className={`min-h-[110px] rounded-lg border border-dashed flex flex-col items-center justify-center p-2 text-center transition-colors ${
                     isOver
-                      ? 'border-[#B8F34A] bg-[#B8F34A]/10 text-[#B8F34A]'
-                      : 'border-[#303030] bg-[#0E0E0E]/60 text-[#9AA69B]'
+                      ? 'border-[color:var(--staff-blue)] bg-[var(--staff-ice)] text-[color:var(--staff-blue)]'
+                      : 'border-[color:var(--staff-line)] bg-[var(--staff-subtle)] text-[color:var(--staff-muted)]'
                   }`}
                 >
                   <Shield className="w-4 h-4 mb-1 opacity-60" />
@@ -325,13 +327,13 @@ export function LiveTeamAssignmentBoard({
                           onSelect={onSelectPlayer}
                           actionSlot={
                             <div className="flex items-center justify-between gap-0.5 text-[9px]">
-                              <span className="inline-flex items-center text-[#9AA69B]">
+                              <span className="inline-flex items-center text-[color:var(--staff-muted)]">
                                 <GripVertical className="w-2.5 h-2.5" />
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleAssign(player.id, null)}
-                                className="inline-flex items-center gap-0.5 font-bold text-red-400 hover:text-red-300"
+                                className="inline-flex items-center gap-0.5 font-bold text-[color:var(--staff-danger)] hover:text-[color:var(--staff-danger)]"
                                 title={`Remove ${player.name} from ${team.name}`}
                               >
                                 <X className="w-2.5 h-2.5" />
@@ -356,16 +358,16 @@ export function LiveTeamAssignmentBoard({
         onDragLeave={(e) => handleDragLeave(e, 'UNASSIGNED')}
         onDrop={(e) => handleDrop(e, 'UNASSIGNED')}
         data-testid="unassigned-pool-dropzone"
-        className={`rounded-xl bg-[#141414] border-2 transition-all p-3 space-y-2.5 ${
+        className={`rounded-xl bg-[var(--staff-surface)] border-2 transition-all p-3 space-y-2.5 ${
           dragOverTarget === 'UNASSIGNED'
-            ? 'border-[#B8F34A] bg-[#090909]'
-            : 'border-[#262626]'
+            ? 'border-[color:var(--staff-blue)] bg-[var(--staff-subtle)]'
+            : 'border-[color:var(--staff-line)]'
         }`}
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262626] pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--staff-line)] pb-2">
           <div className="flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-[#B8F34A]" />
-            <h3 className="text-xs sm:text-sm font-bold text-[#F4F7F2]">
+            <Users className="w-3.5 h-3.5 text-[color:var(--staff-blue)]" />
+            <h3 className="text-xs sm:text-sm font-bold text-[color:var(--staff-ink)]">
               Unassigned Player Pool ({unassignedPlayers.length})
             </h3>
           </div>
@@ -373,13 +375,13 @@ export function LiveTeamAssignmentBoard({
           {/* Compact Search & Position Filter */}
           <div className="flex flex-wrap items-center gap-1.5">
             <div className="relative w-36 sm:w-44">
-              <Search className="w-3 h-3 text-[#9AA69B] absolute left-2 top-1/2 -translate-y-1/2" />
+              <Search className="w-3 h-3 text-[color:var(--staff-muted)] absolute left-2 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search player..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#202020] border border-[#303030] rounded-lg pl-6 pr-2 py-1 text-[11px] text-[#F4F7F2] placeholder-[#9AA69B]/60 focus:outline-none focus:border-[#B8F34A]"
+                className="w-full bg-[var(--staff-subtle)] border border-[color:var(--staff-line)] rounded-lg pl-6 pr-2 py-1 text-[11px] text-[color:var(--staff-ink)] placeholder-[color:var(--staff-muted)] focus:outline-none focus:border-[color:var(--staff-blue)]"
               />
             </div>
 
@@ -391,8 +393,8 @@ export function LiveTeamAssignmentBoard({
                   onClick={() => setPosFilter(pos)}
                   className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${
                     posFilter === pos
-                      ? 'bg-[#B8F34A] text-[#090909]'
-                      : 'bg-[#202020] text-[#9AA69B] hover:text-[#F4F7F2]'
+                      ? 'bg-[var(--staff-blue)] text-white'
+                      : 'bg-[var(--staff-subtle)] text-[color:var(--staff-muted)] hover:text-[color:var(--staff-ink)]'
                   }`}
                 >
                   {pos === 'SUP' ? 'SUPPORTER' : pos}
@@ -403,7 +405,7 @@ export function LiveTeamAssignmentBoard({
         </div>
 
         {unassignedPlayers.length === 0 ? (
-          <div className="py-6 text-center text-xs text-[#9AA69B] border border-dashed border-[#303030] rounded-lg">
+          <div className="py-6 text-center text-xs text-[color:var(--staff-muted)] border border-dashed border-[color:var(--staff-line)] rounded-lg">
             {players.length === 0
               ? 'No players registered yet. Add player cards in the Players tab.'
               : 'All players have been assigned to teams! Drag a player here to unassign.'}
@@ -432,7 +434,7 @@ export function LiveTeamAssignmentBoard({
                           type="button"
                           onClick={() => handleAssign(player.id, t.id)}
                           disabled={assignMutation.isPending}
-                          className="py-1 px-0.5 rounded bg-[#202020] hover:bg-[#B8F34A] text-[#F4F7F2] hover:text-[#090909] border border-[#303030] text-[8px] font-black leading-none transition-colors text-center"
+                          className="py-1 px-0.5 rounded bg-[var(--staff-subtle)] hover:bg-[var(--staff-blue)] text-[color:var(--staff-ink)] hover:text-white border border-[color:var(--staff-line)] text-[8px] font-black leading-none transition-colors text-center"
                           title={`Assign ${player.name} to ${t.name}`}
                         >
                           {t.short_code}
@@ -449,45 +451,40 @@ export function LiveTeamAssignmentBoard({
 
       {/* Reset All Confirmation Modal */}
       {showResetConfirm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-sm rounded-2xl bg-[#141414] border border-[#262626] p-4 space-y-4">
-            <div className="flex items-center justify-between border-b border-[#262626] pb-3">
-              <h3 className="font-bold text-sm text-[#F4F7F2]">Reset All Team Assignments</h3>
+        <ModalDialog className="staff-dialog" labelledBy="staff-reset-draft-title"
+          onDismiss={() => { if (!resetMutation.isPending) setShowResetConfirm(false); }}>
+          <div className="w-full p-4 space-y-4">
+            <div className="flex items-center justify-between border-b border-[color:var(--staff-line)] pb-3">
+              <h3 id="staff-reset-draft-title" className="font-bold text-xl">Reset All Team Assignments</h3>
               <button
                 type="button"
                 onClick={() => setShowResetConfirm(false)}
-                className="text-[#9AA69B] hover:text-[#F4F7F2]"
+                className="arena-icon-button"
+                disabled={resetMutation.isPending}
                 aria-label="Close reset confirmation"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="text-xs text-[#9AA69B] leading-relaxed">
+            <p className="text-xs text-[color:var(--staff-muted)] leading-relaxed">
               This will move all assigned players back to the Unassigned Pool so you can start the live presentation draw fresh.
             </p>
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626]">
-              <button
-                type="button"
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[color:var(--staff-line)]">
+              <StaffButton variant="secondary"
                 onClick={() => setShowResetConfirm(false)}
-                className="px-3.5 py-2 rounded-xl bg-[#202020] text-[#F4F7F2] text-xs font-semibold border border-[#303030]"
+                disabled={resetMutation.isPending}
               >
                 Cancel
-              </button>
-              <button
-                type="button"
+              </StaffButton>
+              <StaffButton variant="danger"
                 onClick={() => resetMutation.mutate()}
-                disabled={resetMutation.isPending}
-                className="px-3.5 py-2 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600 transition-colors"
+                isLoading={resetMutation.isPending}
               >
-                {resetMutation.isPending ? 'Resetting...' : 'Reset All'}
-              </button>
+                Reset All
+              </StaffButton>
             </div>
           </div>
-        </div>
+        </ModalDialog>
       )}
     </div>
   );

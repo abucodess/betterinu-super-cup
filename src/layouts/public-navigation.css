@@ -42,14 +42,18 @@
   color: var(--public-ink);
 }
 
-.league-public-icon-button:hover { color: var(--public-blue); background: var(--public-highlight); }
+.league-public-icon-button:hover,
+.league-public-overflow > button[aria-expanded='true'] {
+  color: var(--public-blue);
+  background: var(--public-highlight);
+}
 
 .league-public-nav {
   position: fixed;
   z-index: 30;
   inset: auto 0 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   border-top: 1px solid var(--public-line);
@@ -69,27 +73,79 @@
   color: var(--public-muted);
   font-size: .73rem;
   font-weight: 700;
+  white-space: nowrap;
   transition: color 160ms ease, background-color 160ms ease;
 }
 
 .league-public-nav a:hover { color: var(--public-blue); }
 .league-public-nav a[aria-current] { color: var(--public-blue); border-color: currentColor; background: #f2f2ff; }
-.league-public-nav a:focus-visible { outline-offset: -4px; }
+.league-public-nav a:focus-visible { outline-color: var(--public-blue); outline-offset: -4px; }
 
 .arena-public-shell :is(.league-public-header, .league-public-more) :focus-visible {
   outline-color: var(--public-blue);
 }
 
-.league-public-more.arena-more { background: #fff; color: var(--public-ink); border-color: var(--public-line); color-scheme: light; }
-.league-public-more h2 { font: 800 1.75rem/1 var(--arena-heading); }
-.league-public-more.arena-more a:hover { background: var(--public-highlight); color: var(--public-blue); }
-.league-public-more::backdrop { background: #10152780; }
+.league-public-overflow { position: relative; }
+
+.league-public-more {
+  position: absolute;
+  z-index: 35;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  display: grid;
+  width: min(208px, calc(100vw - 28px));
+  padding: 5px;
+  border: 1px solid var(--public-line);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--public-ink);
+  box-shadow: 0 8px 24px #1015271f;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+}
+
+.league-public-more[data-open] {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+
+.league-public-more a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding-inline: 10px;
+  border-radius: 5px;
+  font-size: .84rem;
+  font-weight: 600;
+}
+
+.league-public-more a svg { color: var(--public-blue); flex-shrink: 0; }
+.league-public-more a:is(:hover, :focus-visible) { background: var(--public-highlight); color: var(--public-blue); }
+.league-public-more a:focus-visible { outline-offset: -2px; }
+
+.arena-public-shell #clubs { scroll-margin-block-start: 14px; }
+
+@media (max-width: 999px) {
+  .arena-public-shell:not(.arena-home-layout, :has(.arena-draft-big)) {
+    padding-block-end: calc(var(--league-nav-height) + env(safe-area-inset-bottom));
+  }
+}
 
 @media (min-width: 1000px) {
   .league-public-header-inner { display: grid; grid-template-columns: 1fr auto 1fr; min-height: 72px; }
   .league-public-brand { justify-self: start; }
   .league-public-header-actions { justify-self: end; gap: 8px; }
-  .league-public-nav { position: static; display: flex; align-self: stretch; border-top: 0; background: none; box-shadow: none; }
+  .league-public-nav { position: static; grid-template-columns: repeat(4, 1fr); align-self: stretch; border-top: 0; background: none; box-shadow: none; }
   .league-public-nav a { flex-direction: row; gap: 8px; padding-inline: 16px; border-top: 0; border-bottom: 2px solid transparent; font-size: .82rem; }
   .league-public-nav a svg { width: 17px; height: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .league-public-more { transition: none; }
+  html:has(.arena-public-shell) { scroll-behavior: auto; }
 }

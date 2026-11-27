@@ -1,5 +1,5 @@
+import { StaffButton as Button, StaffCrest } from '../../components/shared/StaffManagementUI';
 import React from 'react';
-import { Button } from '../../components/ui/Button';
 import { ModalDialog } from '../../components/ui/ModalDialog';
 import { countAssistsByPlayer } from '../../utils/tournamentRules';
 
@@ -20,27 +20,27 @@ export function FinalResultDialog({ match, events, eventsPending, eventsError, o
   const validScore = [match.home_score, match.away_score].every((score) => Number.isInteger(score) && score >= 0);
 
   return (
-    <ModalDialog labelledBy="final-result-title" onDismiss={() => { if (!pending) onDismiss(); }}>
+    <ModalDialog className="staff-dialog" labelledBy="final-result-title" onDismiss={() => { if (!pending) onDismiss(); }}>
       <div className="p-4 space-y-4">
         <div>
           <h2 className="arena-section-title" id="final-result-title">Confirm final result</h2>
-          <p className="mt-2 text-sm text-[#b4b4be]">Check the score and recorded events before publishing.</p>
+          <p className="mt-2 text-sm text-[color:var(--staff-muted)]">Check the score and recorded events before publishing.</p>
         </div>
-        <p className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center text-center text-sm font-bold">
-          <span className="break-words">{home}</span>
+        <div className="staff-scoreboard-teams staff-match-preview">
+          <div><StaffCrest club={match.home_team} /><strong>{home}</strong></div>
           <strong className="tabular-nums text-2xl whitespace-nowrap">{match.home_score} – {match.away_score}</strong>
-          <span className="break-words">{away}</span>
-        </p>
+          <div><StaffCrest club={match.away_team} /><strong>{away}</strong></div>
+        </div>
         {eventsPending ? <p role="status" className="text-sm">Loading match events…</p> : eventsError ? (
           <div className="space-y-2">
-            <p role="alert" className="text-sm text-[#ffc1ce]">Match events could not be loaded.</p>
+            <p role="alert" className="text-sm text-[color:var(--staff-danger)]">Match events could not be loaded.</p>
             <Button variant="secondary" onClick={onRetry}>Try again</Button>
           </div>
         ) : (
           <table className="w-full text-sm">
             <caption className="sr-only">Recorded match events by team</caption>
             <thead>
-              <tr className="text-[#b4b4be]">
+              <tr className="text-[color:var(--staff-muted)]">
                 <th scope="col" className="text-left">Events</th>
                 <th scope="col">Home</th>
                 <th scope="col">Away</th>
@@ -48,7 +48,7 @@ export function FinalResultDialog({ match, events, eventsPending, eventsError, o
             </thead>
             <tbody>
               {labels.map((label, index) => (
-                <tr className="border-t border-[#323237]" key={label}>
+                <tr className="border-t border-[color:var(--staff-line)]" key={label}>
                   <th scope="row" className="py-2 text-left font-medium">{label}</th>
                   <td className="text-center tabular-nums">{homeSummary[index]}</td>
                   <td className="text-center tabular-nums">{awaySummary[index]}</td>
@@ -57,8 +57,8 @@ export function FinalResultDialog({ match, events, eventsPending, eventsError, o
             </tbody>
           </table>
         )}
-        {!validScore && <p role="alert" className="text-sm text-[#ffc1ce]">Contact the league administrator to correct the score.</p>}
-        {failed && <p role="alert" className="text-sm text-[#ffc1ce]">The result could not be published. Try again.</p>}
+        {!validScore && <p role="alert" className="text-sm text-[color:var(--staff-danger)]">Contact the league administrator to correct the score.</p>}
+        {failed && <p role="alert" className="text-sm text-[color:var(--staff-danger)]">The result could not be published. Try again.</p>}
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="secondary" disabled={pending} onClick={onDismiss}>Cancel</Button>
           <Button disabled={!validScore || eventsPending || eventsError} isLoading={pending} onClick={onConfirm}>Publish result</Button>

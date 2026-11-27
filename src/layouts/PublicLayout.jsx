@@ -1,10 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
-import { BarChart3, CalendarDays, ChevronRight, ClipboardList, Ellipsis, House, LockKeyhole, Radio, ShieldCheck, Users, X } from 'lucide-react';
+import { BarChart3, CalendarDays, DoorOpen, Ellipsis, House, Shield, ShieldCheck } from 'lucide-react';
 import { NotificationCenter } from '../features/notifications/NotificationCenter';
-import { useAuth } from '../hooks/useAuth';
 import { useArenaViewport } from '../hooks/useArenaViewport';
-import { getStaffDashboard } from '../utils/staffRoles';
 import '../arena.css';
 import '../pages/public/tournament-home.css';
 import './public-navigation.css';
@@ -13,6 +11,7 @@ const primaryLinks = [
   { to: '/public', label: 'Home', icon: House },
   { to: '/public/fixtures', label: 'Fixtures', icon: CalendarDays },
   { to: '/public/standings', label: 'Standings', icon: BarChart3 },
+  { to: '/login', label: 'Staff Login', icon: ShieldCheck },
 ];
 
 function PublicNavigation({ page }) {
@@ -31,7 +30,58 @@ function PublicNavigation({ page }) {
   );
 }
 
-function PublicHeader({ page, onMore }) {
+function PublicOverflow() {
+  const { key } = useLocation();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const triggerRef = useRef(null);
+  const close = () => setOpen(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [key]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function dismissOutside(event) {
+      if (!menuRef.current?.contains(event.target)) setOpen(false);
+    }
+
+    function dismissOnEscape(event) {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus({ preventScroll: true });
+    }
+
+    document.addEventListener('pointerdown', dismissOutside);
+    document.addEventListener('keydown', dismissOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', dismissOutside);
+      document.removeEventListener('keydown', dismissOnEscape);
+    };
+  }, [open]);
+
+  return (
+    <div className="league-public-overflow" ref={menuRef} onBlur={(event) => {
+      if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) close();
+    }}>
+      <button type="button" className="league-public-icon-button" ref={triggerRef}
+        onClick={() => setOpen((wasOpen) => !wasOpen)} aria-label="More league links"
+        aria-controls="league-public-more" aria-expanded={open}>
+        <Ellipsis size={22} aria-hidden="true" />
+      </button>
+      <nav className="league-public-more" id="league-public-more" aria-label="More league links"
+        data-open={open || undefined} inert={open ? undefined : ''}>
+        <Link to="/" onClick={close}><DoorOpen size={19} aria-hidden="true" /> Go to Entrance</Link>
+        <Link to="/public#clubs" onClick={close}><Shield size={19} aria-hidden="true" /> Explore Teams</Link>
+      </nav>
+    </div>
+  );
+}
+
+function PublicHeader({ page }) {
   return (
     <header className="league-public-header">
       <div className="league-public-header-inner">
@@ -41,9 +91,7 @@ function PublicHeader({ page, onMore }) {
         <PublicNavigation page={page} />
         <div className="league-public-header-actions">
           <span className="league-public-season">Season <strong>2026/27</strong></span>
-          <button type="button" className="league-public-icon-button" onClick={onMore} aria-label="More league links" aria-haspopup="dialog">
-            <Ellipsis size={22} aria-hidden="true" />
-          </button>
+          <PublicOverflow />
           <NotificationCenter />
         </div>
       </div>
@@ -52,31 +100,18 @@ function PublicHeader({ page, onMore }) {
 }
 
 export function PublicLayout() {
-  const { isAuthenticated, role } = useAuth();
   const { pathname } = useLocation();
   const page = pathname.split('/')[2];
   const lightPage = !page || page === 'fixtures' || page === 'standings';
   const layoutClass = ['arena', 'arena-public-shell', lightPage && 'arena-home-layout', page === 'fixtures' && 'arena-fixtures-layout']
     .filter(Boolean).join(' ');
-  const moreRef = useRef(null);
-  const closeRef = useRef(null);
-  const dashboard = isAuthenticated && getStaffDashboard(role);
-  const closeMore = () => moreRef.current?.close();
-
   useArenaViewport();
-
-  useEffect(() => {
-    moreRef.current?.close();
-  }, [pathname]);
 
   return (
     <div className={layoutClass}>
       <ScrollRestoration />
       <a className="arena-skip" href="#arena-content">Skip to content</a>
-      <PublicHeader page={page} onMore={() => {
-        moreRef.current?.showModal();
-        closeRef.current?.focus();
-      }} />
+      <PublicHeader page={page} />
       <main id="arena-content" tabIndex={-1} className="arena-content">
         <div key={pathname} className="arena-route"><Outlet /></div>
       </main>
@@ -86,27 +121,6 @@ export function PublicLayout() {
           <span>5-a-side · 2026/27 season</span>
         </footer>
       )}
-      <dialog ref={moreRef} className="arena-dialog arena-more league-public-more" aria-labelledby="arena-more-title"
-        onClick={(event) => { if (event.target === event.currentTarget) closeMore(); }}>
-        <div className="p-4">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h2 id="arena-more-title">More</h2>
-            <button ref={closeRef} className="league-public-icon-button" type="button" onClick={closeMore} aria-label="Close navigation">
-              <X size={22} aria-hidden="true" />
-            </button>
-          </div>
-          <Link to="/public/teams" onClick={closeMore}><Users size={19} aria-hidden="true" /> Teams <ChevronRight size={16} aria-hidden="true" /></Link>
-          <Link to="/public/teams?view=draft" onClick={closeMore}><ClipboardList size={19} aria-hidden="true" /> Draft board <ChevronRight size={16} aria-hidden="true" /></Link>
-          <Link to="/public/teams?view=players&team=UNALLOCATED" onClick={closeMore}><Users size={19} aria-hidden="true" /> Draft pool <ChevronRight size={16} aria-hidden="true" /></Link>
-          <Link to="/public/live" onClick={closeMore}><Radio size={19} aria-hidden="true" /> Live scores <ChevronRight size={16} aria-hidden="true" /></Link>
-          <Link to="/" onClick={closeMore}><House size={19} aria-hidden="true" /> League entrance <ChevronRight size={16} aria-hidden="true" /></Link>
-          {dashboard ? (
-            <Link to={dashboard} onClick={closeMore}><ShieldCheck size={19} aria-hidden="true" /> Staff dashboard <ChevronRight size={16} aria-hidden="true" /></Link>
-          ) : (
-            <Link to="/login" onClick={closeMore}><LockKeyhole size={19} aria-hidden="true" /> Staff Login <ChevronRight size={16} aria-hidden="true" /></Link>
-          )}
-        </div>
-      </dialog>
     </div>
   );
 }

@@ -49,20 +49,20 @@ export function PlayerImageUploader({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <label className="block text-xs font-medium text-[#9AA69B]">
+        <label className="block text-xs font-medium text-[color:var(--staff-muted)]">
           {label}
         </label>
         {uploadStatus && !error && (
-          <span className="text-[11px] font-medium flex items-center gap-1 text-[#22C55E]">
+          <span role="status" className="text-xs font-medium flex items-center gap-1 text-[color:var(--staff-success)]">
             <CheckCircle2 className="w-3 h-3 shrink-0" />
             <span>{uploadStatus}</span>
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[#202020] border border-[#303030]">
+      <div className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--staff-subtle)] border border-[color:var(--staff-line)]">
         {/* 3:4 Card Thumbnail Preview */}
-        <div className="w-14 h-[74px] rounded-lg bg-[#141414] border border-[#303030] flex items-center justify-center overflow-hidden shrink-0">
+        <div className="w-14 h-[74px] rounded-lg bg-[var(--staff-surface)] border border-[color:var(--staff-line)] flex items-center justify-center overflow-hidden shrink-0">
           {currentUrl ? (
             <img
               key={currentUrl}
@@ -71,7 +71,7 @@ export function PlayerImageUploader({
               className="w-full h-full object-contain"
             />
           ) : (
-            <ImageIcon className="w-5 h-5 text-[#9AA69B]/50" />
+            <ImageIcon className="w-5 h-5 text-[color:var(--staff-muted)]/50" />
           )}
         </div>
 
@@ -89,7 +89,7 @@ export function PlayerImageUploader({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#B8F34A] text-[#090909] text-xs font-semibold hover:bg-[#c8ff63] transition-colors disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--staff-blue)] text-white text-xs font-semibold hover:bg-[#1810c2] transition-colors disabled:opacity-50"
             >
               <Upload className="w-3.5 h-3.5" />
               {isUploading
@@ -107,7 +107,7 @@ export function PlayerImageUploader({
                   setUploadStatus('');
                   setError('');
                 }}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#141414] text-[#EF4444] border border-[#303030] text-xs font-medium hover:bg-[#EF4444]/10 transition-colors"
+                className="inline-flex min-h-11 items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--staff-surface)] text-[color:var(--staff-danger)] border border-[color:var(--staff-line)] text-xs font-medium hover:bg-[#EF4444]/10 transition-colors"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Remove
@@ -117,19 +117,20 @@ export function PlayerImageUploader({
 
           <input
             type="text"
+            aria-label="Player card image URL"
             placeholder="Or paste card image URL..."
             value={currentUrl && currentUrl.startsWith('data:') ? '' : currentUrl || ''}
             onChange={(e) => {
               setError('');
               onChange(e.target.value);
             }}
-            className="w-full bg-[#141414] border border-[#303030] rounded-lg px-2.5 py-1 text-xs text-[#F4F7F2] placeholder-[#9AA69B]/50 focus:outline-none focus:border-[#B8F34A]"
+            className="w-full bg-[var(--staff-surface)] border border-[color:var(--staff-line)] rounded-lg px-2.5 py-1 text-xs text-[color:var(--staff-ink)] placeholder-[color:var(--staff-muted)] focus:outline-none focus:border-[color:var(--staff-blue)]"
           />
         </div>
       </div>
 
       {error && (
-        <p className="text-xs text-[#EF4444]" role="alert">
+        <p className="text-xs text-[color:var(--staff-danger)]" role="alert">
           {error}
         </p>
       )}

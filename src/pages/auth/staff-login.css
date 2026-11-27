@@ -213,7 +213,7 @@
   border: 1px solid var(--staff-border);
   border-radius: 12px;
   background: #fff;
-  animation: staff-form-enter 290ms cubic-bezier(.2,.7,.25,1) both;
+  animation: staff-form-enter 210ms cubic-bezier(.2,.7,.25,1) both;
 }
 
 @keyframes staff-form-enter {
@@ -221,7 +221,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.staff-form-art { display: grid; place-items: center; padding: 5px 7px 0; }
+.staff-form-art { display: grid; place-items: center; margin: 8px; padding: 6px; border-radius: 8px; background: #eaf3ff; }
 .staff-form-art img { display: block; width: 100%; height: clamp(108px, 36vw, 170px); object-fit: contain; }
 .staff-form-content { min-width: 0; padding: 0 13px 14px; }
 .staff-login .staff-form-content h1 { font-size: clamp(2.1rem, 7vw, 3.6rem); outline: none; }
@@ -288,8 +288,7 @@
   .staff-role-card-content { padding: 4px 17px 17px; }
   .staff-role-card p { font-size: .87rem; }
   .staff-form-shell { width: min(100%, 830px); grid-template-columns: minmax(0, 1fr) minmax(0, .94fr); }
-  .staff-form-art { margin: 12px; padding: 4px; border-radius: 9px; background: #f3f5fe; }
-  .staff-form-art[data-role="admin"] { background: #f1f8f5; }
+  .staff-form-art { margin: 12px; padding: 6px; }
   .staff-form-art img { height: auto; }
   .staff-form-content { padding: 17px 20px 22px 8px; }
 }
